@@ -1,1 +1,1214 @@
+QUESTION 3
 
+
+Okay, I need to design a train scheduling system for the Passenger Rail Agency of South Africa. Let me start by understanding the problem statement and requirements.
+
+First, the system must handle scheduling trains without overlapping platform usage at any station. So, when adding a train schedule, I need to check that no other train is using the same platform at the same time. That sounds like I need to track each station's platforms and their availability over time.
+
+Dynamic updates mean adding new schedules and canceling existing ones. So the system should allow modifications. Also, real-time simulation using multithreading where each train is a thread. Each thread will simulate the train's journey, arrival, departure, etc. And data management using ArrayLists for schedules and platforms.
+
+Let me break down the components. Maybe each Station has a list of Platforms. Each Platform has a schedule of TrainSchedules, which include arrival and departure times. When adding a train, check all platforms in the stations it passes through to ensure no overlap.
+
+Wait, but how do the trains move between stations? Maybe each TrainSchedule has a route, which is a list of stations with arrival and departure times. But that might complicate things. Alternatively, the system could model each station's platforms and their reservations.
+
+Alternatively, perhaps each Train has a schedule that includes the stations it stops at, along with arrival and departure times. For each station in the train's route, we need to reserve the platform at that station for the time interval [arrival, departure]. So, when adding a train schedule, for each station in its route, check if the platform is available during those times.
+
+So the main data structures would be:
+
+- A list of stations, each station having multiple platforms.
+
+- Each platform has a list of time intervals during which it's occupied.
+
+When adding a train, for each station in its route, check the assigned platform at that station to see if the time intervals don't overlap with existing reservations.
+
+But how to model the routes? Maybe a TrainSchedule object contains a list of StationTime objects, each representing a station, arrival time, departure time, and platform number.
+
+But the problem statement mentions "scheduling trains" with platform assignments such that no two trains use the same platform at the same time at any station. So for each station, each platform can have only one train at a time.
+
+So, when adding a new train schedule, for each station in the train's route, the system must check if the platform at that station is available during the specified times.
+
+Now, the data management uses ArrayList. So each Station can have an ArrayList of Platforms, and each Platform has an ArrayList of TimeSlot or ScheduleEntry objects representing the times it's occupied.
+
+Now, the Train class might need to be a thread. Each train's run() method would simulate its journey. For example, when the current time reaches the departure time, the train departs, arrives at the next station, waits, departs again, etc.
+
+But how to handle the real-time simulation. Maybe the system has a global clock, but that's complicated. Alternatively, each train thread sleeps until its scheduled departure time, then starts moving through stations.
+
+Wait, but simulating the real-time operation would require that the threads represent the trains moving according to their schedule. So each Train thread would have a schedule, and when the simulation starts, each train's thread would start executing based on their schedule times.
+
+But how to manage the timing in the threads? For example, if a train is scheduled to depart at 10:00 AM, the thread would need to wait until the simulated time reaches 10:00 AM. But simulating time could be tricky. Maybe use a Timer or ScheduledExecutorService to schedule tasks at specific times. Or perhaps each thread calculates the delay until its next event and sleeps for that duration.
+
+Alternatively, the system could have a simulation clock that starts at a certain time and increments, and all threads check the clock. But that might be more complex. Using real-time waiting with Thread.sleep() might not be feasible if we want to simulate time faster than real-time.
+
+Hmm. The problem says "real-time simulation" but it's not clear if it's real-time or simulated time. Maybe the threads just represent the trains moving through their schedules, with each action (arrival, departure) happening in sequence with delays based on the schedule. For example, a train departs station A at 10:00, arrives at station B at 10:30. The thread would wait 30 minutes (simulated as maybe 30 seconds) between events. But scaling the time is an issue. Alternatively, the simulation uses actual system time but scaled. But that's up to implementation.
+
+Alternatively, the threads just process the schedule step by step, using Thread.sleep() with a scaled duration. For example, if the schedule says departure is in 1 hour, the thread sleeps for 1 minute to represent that. So the time is scaled down. That could be a way to handle it.
+
+But perhaps for simplicity, each Train thread, when started, processes its schedule step by step, sleeping for the required duration between each step. For example, the train's schedule has departure from station A at time T0, arrives at station B at T1, etc. The thread would calculate the time difference between now (simulated start time) and T0, wait that amount (scaled perhaps), then depart, then wait until T1 - T0, arrive at B, etc.
+
+But how to handle the initial scheduling. The system needs to manage all the trains' schedules, and when the simulation starts, all the trains' threads are started, each handling their own schedule.
+
+But then the system needs to track the current simulation time. Maybe all the trains use the system's real clock, but that's not matching. Alternatively, the simulation starts at a certain time, say 00:00, and each train's schedule is relative to that. But that's getting complicated.
+
+Alternatively, each Train thread is responsible for its own timing. When the train's start time comes (based on its schedule), it begins its journey. For example, if the train is scheduled to depart at 10:00, and the current system time is 9:50, the thread waits for 10 minutes (in real time) then starts. But this would require the simulation to be running in real time, which might not be desired.
+
+But the problem says "real-time simulation", which might mean that the simulation runs in real time, so a 1-hour journey in the schedule takes 1 hour in real time. But that's probably not practical for testing. So perhaps the simulation uses a time scale, like 1 second of real time equals 1 minute of simulation time. So the threads can adjust their sleep times accordingly.
+
+Alternatively, the problem might not require actual real-time simulation but just the use of threads to represent each train's movement, with the threads processing the schedule steps (arrival, departure) in sequence. For example, a train arrives at a station, waits for a certain time (simulated by a sleep), then departs. So the code could use Thread.sleep() with some duration to simulate the time between events.
+
+But how to handle the actual schedule times. Let's think of each TrainSchedule as having a list of events (arrive at station X platform Y at time T, depart at time T+delta). So when the simulation starts, the train's thread checks the current simulation time, and when it's time to arrive, it does so, then waits until departure time, departs, and so on.
+
+But managing the simulation time is a challenge. Maybe the system uses a global clock that starts when the simulation begins. All train threads track their schedule relative to this clock. For example, if the simulation starts at real time 0, and a train's first event is at simulation time 100 (seconds), the thread would wait 100 seconds (real time) before executing that event.
+
+But this requires that all threads have access to the simulation start time and calculate their delays based on that. That could work.
+
+Alternatively, use a virtual clock, where each second of real time represents a minute or hour of simulation time. But this may complicate things.
+
+Alternatively, for simplicity, the threads just process their schedule step by step, with each step having a fixed delay. For example, depart from station A, sleep for 5 seconds (simulating travel time), arrive at station B, sleep for 2 seconds (simulating stop), depart, etc. But this approach doesn't tie the simulation to actual clock times. However, the problem mentions scheduling with specific times (like 10:00 AM), so the system needs to manage schedules based on those times.
+
+This makes me think that each TrainSchedule has a list of events with specific times. The simulation starts at a certain real time, and each event is scheduled to occur at a specific simulation time. The threads need to wait until their event's simulation time is reached.
+
+But how to handle the simulation time progression. One approach is to have a SimulationClock class that keeps track of the current simulation time, which can be independent of real time. Then, each Train thread checks the simulation clock and waits until their event time. However, this requires that the simulation clock is updated in a way that the threads can access it, possibly with some form of time acceleration.
+
+But that's getting complicated. Maybe for the scope of this problem, we can simplify by using real time, where each event is scheduled to happen after a certain delay from the start of the simulation. For example, if a train is scheduled to depart at 10:00 AM, and the simulation starts at 9:50 AM real time, the thread would wait 10 minutes (real time) to simulate the departure. But this would tie the simulation to real time, which might not be practical. Alternatively, the simulation starts at time 0, and each train's schedule is relative to that. For example, departure at 10:00 would be 10 minutes after the simulation starts, with each minute in the schedule being a second in real time. But this requires scaling.
+
+Hmm. Let's think about the code structure.
+
+First, the data structures:
+
+- TrainSchedule class: Contains information about the train's route, including stations, platforms, arrival and departure times.
+
+But how to model the route. Maybe each TrainSchedule has a list of ScheduleEntry objects, each representing a stop at a station, with arrival time, departure time, platform number, and station.
+
+So, for example:
+
+class ScheduleEntry {
+
+Station station;
+
+int platform;
+
+LocalDateTime arrivalTime;
+
+LocalDateTime departureTime;
+
+}
+
+Then, the TrainSchedule would have a list of ScheduleEntry objects, ordered by time.
+
+When adding a train schedule, for each ScheduleEntry in the list, we need to check that the platform at the station is not occupied during [arrivalTime, departureTime].
+
+So the Station class would have a list of Platforms, and each Platform has a list of occupied time intervals.
+
+So:
+
+class Station {
+
+String name;
+
+List<Platform> platforms;
+
+}
+
+class Platform {
+
+int number;
+
+List<TimeInterval> reservations;
+
+}
+
+class TimeInterval {
+
+LocalDateTime start;
+
+LocalDateTime end;
+
+TrainSchedule schedule;
+
+}
+
+When adding a new TrainSchedule, for each ScheduleEntry in its route, check the corresponding Station and Platform's reservations to ensure that the new time interval doesn't overlap with any existing ones.
+
+If any of the checks fail, the schedule can't be added.
+
+Now, for the concurrency handling: when multiple threads (trains) are trying to access and modify the platform reservations, we need to ensure that the data structures are thread-safe.
+
+Since ArrayLists are not thread-safe, we need to synchronize access to them. So when adding or canceling a schedule, we need to use synchronization to prevent race conditions.
+
+But the problem states to use ArrayList for data management, which implies that the code will handle synchronization manually.
+
+So, for each Platform's reservations list, any access (read or write) must be synchronized on a common lock. Alternatively, use synchronized blocks or methods to ensure atomicity.
+
+In Java, for example, each Platform instance could have a lock object, and when checking or modifying the reservations, the code uses synchronized (platform.lock) { ... }.
+
+But perhaps using a concurrent data structure would be better, but the problem specifies using ArrayList. So we have to manage synchronization ourselves.
+
+Now, the Train class (which is a Thread) would process its schedule entries. When the simulation starts, each Train thread is started. Each thread waits until the arrival time of the first schedule entry, then arrives at the station, occupies the platform, waits until departure time, departs, releases the platform, moves to the next station, etc.
+
+But how to handle the timing. For example, if a train's first schedule entry is arrival at 10:00, the thread needs to wait until the simulation time reaches 10:00. But how is the simulation time tracked?
+
+Alternatively, the simulation starts at a certain real time, and each schedule's times are relative to that. But that's not ideal.
+
+Alternatively, the simulation uses a virtual clock. For example, when the simulation starts, the virtual time is 0, and each train's schedule entries are based on this virtual time. The virtual time can be advanced by a separate thread, and the train threads check the virtual time to know when to perform their actions.
+
+But this adds complexity. Alternatively, each Train thread calculates the delay until its next event based on the current real time and the schedule's time. For example, if the train is scheduled to depart at 10:00:00, and the current real time is 09:59:00, the thread waits for 60 seconds.
+
+But this requires that the system's real time is synchronized with the schedule times, which may not be flexible. However, it's a possible approach for the simulation.
+
+Alternatively, the schedules are relative. For example, when the simulation starts, all times are considered as offsets from the start time. So a train scheduled to depart at 10:00 would actually depart 10 minutes after the simulation starts (if the start time is considered as 0). But this way, the code can use relative delays.
+
+But in the problem statement, the scheduling likely involves absolute times (like specific hours and minutes), so the code needs to handle that.
+
+Another approach is to have the TrainSchedule store times as offsets from the simulation start. For example, the first departure is at time 0, then subsequent events are relative. But this depends on how the system is designed.
+
+Hmm. Perhaps the easiest way to handle time in the simulation is to have each Train thread schedule its events using a timer. For example, when a train is added to the system, its schedule is parsed into a series of events (arrive at station X at time T, depart at T + delta). The thread then schedules these events using a Timer or ScheduledExecutorService, which triggers the events at the appropriate times.
+
+But how to manage the timing if the simulation is supposed to run faster or slower than real time.
+
+Alternatively, for the purposes of this problem, perhaps the simulation runs in real time, and the code uses the system's real clock. So, when a train is scheduled to depart at 10:00:00, the thread uses a ScheduledExecutorService to schedule a task at that real time. But this would require that the system's clock is set correctly, which may not be practical for testing.
+
+Alternatively, when the simulation starts, it sets a base time (e.g., the current system time), and all schedule times are converted into delays relative to this base time. For example, if a train is scheduled to depart at 10:00, and the base time is 09:50, the delay is 10 minutes. The thread then waits for that delay.
+
+This approach would work. So the steps would be:
+
+1. When the simulation starts, record the current system time as the base time.
+
+2. For each TrainSchedule, calculate the delay for each event relative to the base time.
+
+3. Schedule each event (arrival, departure) using a timer with the calculated delay.
+
+But this requires that the events in the schedule are absolute times (e.g., LocalDateTime), and the base time is known.
+
+This seems manageable. But how to handle schedules that have events in the past relative to the base time? Probably, those would be ignored or considered as already departed.
+
+But in the context of the problem, perhaps the schedules are added with future times, so when the simulation starts, all events are in the future.
+
+Now, for the code structure:
+
+We'll need:
+
+- A TrainScheduler class that manages the stations, platforms, and train schedules.
+
+- A Train class that extends Thread (or implements Runnable) to simulate the train's journey.
+
+- ScheduleEntry and other supporting classes.
+
+The TrainScheduler would have methods to addTrainSchedule, cancelTrainSchedule, viewSchedules, etc.
+
+When adding a train schedule, the TrainScheduler checks for platform availability at each station in the schedule. If available, reserves the platforms by adding the time intervals to their respective platform's reservations list.
+
+The Train class, when started, would handle the simulation of the train's journey. For each ScheduleEntry, the train arrives at the station, occupies the platform, waits until departure time, then departs and releases the platform.
+
+But how to handle the waiting. For example, when the train arrives, it needs to hold the platform until departure. So during that time, other trains cannot be scheduled on the same platform.
+
+But when the Train thread is waiting (sleeping) until departure time, the platform is marked as occupied. Once departure time is reached, the platform is released.
+
+Wait, but the platform's reservations are stored in the data structure. So when the schedule is added, the time intervals are already reserved. The Train thread doesn't need to modify the platform's availability during runtime; the reservations are pre-allocated when the schedule is added.
+
+But dynamic updates, like canceling a train schedule, would require removing those reservations.
+
+Wait, that's a key point. When adding a train schedule, the system reserves the platforms at the required times. So the platform's availability is checked and reserved upfront, not at runtime. So the simulation threads (trains) don't need to do anything regarding platform allocation during runtime, except perhaps verifying that they have the reservation.
+
+Wait, but perhaps the system checks platform availability when adding the schedule. Once added, the reservations are in place. So during the simulation, the trains just follow their schedules, and the platform is already reserved for them. So other trains cannot be scheduled on the same platform during those times.
+
+But then, the simulation is just the trains moving through their pre-reserved platforms. So the threads don't need to interact with the platform reservations during runtime, except perhaps to mark when they actually arrive and depart, but that's not necessary if the reservations are already in place.
+
+Hmm, perhaps the platform reservations are made at schedule addition time. The Train threads then just simulate their movement, but the actual platform assignments are already fixed. So concurrency during the simulation is not a problem because the schedules have already reserved the platforms.
+
+But the dynamic updates (like canceling a schedule) would require removing those reservations.
+
+So the main concurrency issues are:
+
+1. When adding or canceling a schedule, modifying the platform reservations in a thread-safe way.
+
+2. During the simulation, multiple Train threads may be accessing shared resources (like printing logs, etc.), but the platform reservations are already fixed.
+
+So, the critical part is ensuring that adding and canceling schedules are thread-safe operations, as they modify the ArrayLists holding the reservations.
+
+In Java, ArrayLists are not thread-safe, so when multiple threads (like a user adding a schedule via an interface while the simulation is running) try to modify the ArrayLists, we need synchronization.
+
+So, the TrainScheduler class's methods (add, cancel) should be synchronized to prevent concurrent modifications.
+
+But in a real system, the user interface (like a GUI or admin interface) would be separate from the simulation threads. However, for the purposes of this problem, perhaps we can assume that the adding and canceling are done in a thread-safe manner using synchronized methods or blocks.
+
+Now, putting this together.
+
+Let's outline the classes:
+
+1. TrainScheduler: Manages stations, platforms, and schedules. Has methods to add, cancel, view schedules.
+
+2. Station: Represents a station with a name and list of platforms.
+
+3. Platform: Represents a platform in a station, with a list of reserved time intervals.
+
+4. TimeInterval: Represents a start and end time, and the associated train schedule.
+
+5. TrainSchedule: Contains details of a train's schedule, including a list of ScheduleEntry objects.
+
+6. ScheduleEntry: Contains station, platform, arrival and departure times.
+
+7. Train: Extends Thread. Simulates the train's journey by processing each ScheduleEntry, sleeping until the appropriate times, and logging arrivals and departures.
+
+The process of adding a train schedule:
+
+- The user provides a TrainSchedule with a list of ScheduleEntry objects.
+
+- For each ScheduleEntry in the TrainSchedule, check if the platform at the station is available during the specified time interval.
+
+- If all platforms are available, reserve them by adding the TimeInterval to each platform's reservations list.
+
+- Then, create a Train thread for this schedule and start it when the simulation begins.
+
+Concurrency handling during addition:
+
+- When checking and reserving platforms, the TrainScheduler must ensure that no other thread is modifying the platform's reservations at the same time. So, when accessing a platform's reservations list, synchronize on that list or a lock object.
+
+But since each platform has its own reservations list, perhaps synchronizing on the platform's list when modifying it.
+
+For example:
+
+public boolean addTrainSchedule(TrainSchedule schedule) {
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Station station = entry.getStation();
+
+Platform platform = station.getPlatform(entry.getPlatform());
+
+synchronized (platform.getReservations()) {
+
+if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
+
+return false;
+
+}
+
+}
+
+}
+
+// All platforms are available, now reserve them
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Station station = entry.getStation();
+
+Platform platform = station.getPlatform(entry.getPlatform());
+
+synchronized (platform.getReservations()) {
+
+platform.getReservations().add(new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule));
+
+}
+
+}
+
+// Add the schedule to the list
+
+synchronized (trainSchedules) {
+
+trainSchedules.add(schedule);
+
+}
+
+return true;
+
+}
+
+But in this approach, the checking and reserving are done in two separate loops, which could lead to a race condition. Because after checking all platforms, another thread could add a reservation in between the check and the reservation. So this is a classic problem of non-atomic check-then-act.
+
+To prevent this, the entire process of checking and reserving must be atomic for all platforms involved. Which is difficult because each platform's reservations are separate. So how to lock all platforms in the schedule's entries to prevent concurrent modifications during the check and reserve phase.
+
+This is tricky. One approach is to lock all the platforms in a fixed order to prevent deadlocks. For example, sort the platforms by station name and platform number, then lock them in that order during both the check and reserve phases.
+
+But how to handle that. Let's see.
+
+When adding a schedule, we need to:
+
+1. Lock all platforms in the schedule's entries in a fixed order.
+
+2. Check each platform's availability.
+
+3. If all are available, reserve them.
+
+4. Unlock all platforms.
+
+This way, during the check and reserve phase, no other thread can modify these platforms' reservations, ensuring atomicity.
+
+But implementing this requires that for each schedule, we collect all platforms involved, sort them in a fixed order (to prevent deadlocks), then lock them all before proceeding.
+
+This is more complex, but necessary to avoid race conditions.
+
+So the code would look something like:
+
+public boolean addTrainSchedule(TrainSchedule schedule) {
+
+List<Platform> platformsToReserve = new ArrayList<>();
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+
+platformsToReserve.add(platform);
+
+}
+
+// Sort platforms to lock in a fixed order
+
+platformsToReserve.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+
+try {
+
+// Acquire locks in sorted order
+
+for (Platform p : platformsToReserve) {
+
+p.lock();
+
+}
+
+// Check availability for all platforms
+
+boolean allAvailable = true;
+
+for (int i = 0; i < schedule.getEntries().size(); i++) {
+
+ScheduleEntry entry = schedule.getEntries().get(i);
+
+Platform platform = platformsToReserve.get(i);
+
+if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
+
+allAvailable = false;
+
+break;
+
+}
+
+}
+
+if (!allAvailable) {
+
+return false;
+
+}
+
+// Reserve all platforms
+
+for (int i = 0; i < schedule.getEntries().size(); i++) {
+
+ScheduleEntry entry = schedule.getEntries().get(i);
+
+Platform platform = platformsToReserve.get(i);
+
+TimeInterval interval = new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule);
+
+platform.getReservations().add(interval);
+
+}
+
+// Add the schedule to the list
+
+synchronized (trainSchedules) {
+
+trainSchedules.add(schedule);
+
+}
+
+return true;
+
+} finally {
+
+// Unlock all platforms in reverse order
+
+for (int i = platformsToReserve.size() - 1; i >= 0; i--) {
+
+platformsToReserve.get(i).unlock();
+
+}
+
+}
+
+}
+
+But in Java, there's no explicit lock() method for objects unless we use the Lock class. So perhaps each Platform has a ReentrantLock instance.
+
+So, modifying the Platform class:
+
+class Platform {
+
+int number;
+
+List<TimeInterval> reservations = new ArrayList<>();
+
+ReentrantLock lock = new ReentrantLock();
+
+// ...
+
+}
+
+Then, in the addTrainSchedule method, for each platform in the sorted list, we acquire the lock.
+
+This approach ensures that during the check and reserve phase, all required platforms are locked, preventing other threads from modifying their reservations.
+
+But this adds complexity. However, it's necessary to prevent race conditions where two trains are scheduled on overlapping platforms.
+
+Once the platforms are locked, the check and reserve are done atomically.
+
+This seems like the correct approach for handling concurrent additions.
+
+Similarly, canceling a schedule would need to remove the reservations from the platforms. Again, this requires locking all the platforms involved in the schedule's entries, removing the reservations, and then unlocking.
+
+Now, for the real-time simulation using multithreading.
+
+Each Train thread is created when the schedule is added. The thread is responsible for simulating the train's journey according to the schedule.
+
+The Train's run method would process each ScheduleEntry in order. For each entry, it would:
+
+1. Calculate the delay until the arrival time.
+
+2. Sleep until that time.
+
+3. Simulate arrival: log the arrival.
+
+4. Sleep until departure time.
+
+5. Simulate departure: log the departure.
+
+But how to calculate the delay based on the current time.
+
+Assuming the simulation starts at a base time (e.g., when the system starts), and the schedule's times are in the future relative to that.
+
+So, the Train thread would:
+
+- For each ScheduleEntry:
+
+a. Compute the time difference between the arrivalTime and the base time.
+
+b. Wait (sleep) for that duration.
+
+c. Arrive at the station (log, etc.)
+
+d. Compute the duration between departureTime and arrivalTime, wait for that.
+
+e. Depart.
+
+But how to handle the base time. Perhaps the TrainScheduler has a getSimulationStartTime() method that returns the time when the simulation was started.
+
+Alternatively, the simulation uses the system's current time as the reference. For example, if the train's schedule is to arrive at 10:00:00, and the current system time is 09:50:00, the thread would sleep for 10 minutes.
+
+But using real system time for scheduling requires that the system is running in real time, which may not be practical for testing. However, for the purposes of this problem, perhaps it's acceptable.
+
+Alternatively, the simulation can use a virtual clock, which starts when the simulation begins and can be scaled. But that's more complex.
+
+Assuming we use real system time:
+
+The Train thread's run method:
+
+public void run() {
+
+try {
+
+for (ScheduleEntry entry : trainSchedule.getEntries()) {
+
+long arrivalDelay = entry.getArrivalTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
+
+if (arrivalDelay > 0) {
+
+Thread.sleep(arrivalDelay);
+
+}
+
+// Simulate arrival
+
+System.out.println("Train " + trainId + " arrived at " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + entry.getArrivalTime());
+
+long departureDelay = entry.getDepartureTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
+
+if (departureDelay > 0) {
+
+Thread.sleep(departureDelay);
+
+}
+
+// Simulate departure
+
+System.out.println("Train " + trainId + " departed from " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + entry.getDepartureTime());
+
+}
+
+} catch (InterruptedException e) {
+
+// Handle cancellation
+
+System.out.println("Train " + trainId + " was canceled.");
+
+}
+
+}
+
+But this approach assumes that the arrival and departure times are in the future relative to the current system time. If a schedule is added with times in the past, the thread would proceed immediately.
+
+But in practice, schedules should be added with future times.
+
+However, when the simulation is started, the user might add schedules with various times. The threads would handle them as per their schedule.
+
+But if the system allows adding schedules with past times, the threads would process them immediately, which might not be desired. So the addTrainSchedule method should probably check that all schedule entries are in the future.
+
+But according to the problem statement, the system should allow dynamic updates, including adding new schedules. So it's possible to add a schedule that starts immediately.
+
+Now, for the cancelTrainSchedule functionality:
+
+When a train schedule is canceled, the system needs to remove its reservations from all platforms and interrupt the Train thread if it's running.
+
+So the TrainScheduler's cancel method would:
+
+1. Find the TrainSchedule in the list.
+
+2. Remove it from the list.
+
+3. For each ScheduleEntry in the TrainSchedule, remove the corresponding TimeInterval from the platform's reservations.
+
+4. Interrupt the Train thread associated with this schedule to stop its execution.
+
+But again, this requires locking the platforms during the removal to prevent race conditions.
+
+The cancel method would need to:
+
+- Lock all platforms in the schedule's entries (similar to the add method, in sorted order).
+
+- Remove the TimeIntervals associated with the schedule.
+
+- Unlock the platforms.
+
+Also, find the corresponding Train thread and interrupt it.
+
+So the TrainScheduler would need to keep track of the Train threads associated with each schedule.
+
+Perhaps the TrainScheduler has a Map<TrainSchedule, Train> activeTrains.
+
+When a schedule is added, a Train object is created and added to the map. When canceled, the Train is retrieved from the map and interrupted.
+
+Putting it all together:
+
+The TrainScheduler has:
+
+- List<Station> stations.
+
+- List<TrainSchedule> trainSchedules.
+
+- Map<TrainSchedule, Train> activeTrains.
+
+When a schedule is added:
+
+- After successfully reserving platforms, a Train object is created, added to activeTrains, and its thread is started.
+
+When a schedule is canceled:
+
+- The Train is retrieved from activeTrains, interrupted, and removed from the map.
+
+- The schedule's TimeIntervals are removed from the platforms.
+
+Now, the TimeInterval objects need to reference the TrainSchedule they belong to, so when canceling, we can find and remove them.
+
+In code:
+
+class TimeInterval {
+
+LocalDateTime start;
+
+LocalDateTime end;
+
+TrainSchedule schedule;
+
+// constructor, getters
+
+}
+
+So, when canceling a TrainSchedule, iterate over each platform's reservations and remove any TimeInterval where schedule equals the canceled schedule.
+
+But this is O(n) for each platform's reservations. For efficiency, maybe use a Map<TrainSchedule, List<TimeInterval>> in each Platform, but the problem requires using ArrayList.
+
+So, even with ArrayLists, it's manageable.
+
+In the cancel method:
+
+public boolean cancelTrainSchedule(TrainSchedule schedule) {
+
+// Find the schedule in the list
+
+synchronized (trainSchedules) {
+
+if (!trainSchedules.contains(schedule)) {
+
+return false;
+
+}
+
+trainSchedules.remove(schedule);
+
+}
+
+// Get the associated Train thread and interrupt it
+
+Train train = activeTrains.get(schedule);
+
+if (train != null) {
+
+train.interrupt();
+
+activeTrains.remove(schedule);
+
+}
+
+// Remove reservations from platforms
+
+List<Platform> platformsToUpdate = new ArrayList<>();
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+
+platformsToUpdate.add(platform);
+
+}
+
+// Sort platforms to lock in fixed order
+
+platformsToUpdate.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+
+try {
+
+// Acquire locks
+
+for (Platform p : platformsToUpdate) {
+
+p.lock();
+
+}
+
+// Remove all TimeIntervals associated with this schedule
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+
+List<TimeInterval> reservations = platform.getReservations();
+
+Iterator<TimeInterval> it = reservations.iterator();
+
+while (it.hasNext()) {
+
+TimeInterval interval = it.next();
+
+if (interval.getSchedule() == schedule) {
+
+it.remove();
+
+}
+
+}
+
+}
+
+} finally {
+
+// Unlock platforms
+
+for (int i = platformsToUpdate.size() - 1; i >= 0; i--) {
+
+platformsToUpdate.get(i).unlock();
+
+}
+
+}
+
+return true;
+
+}
+
+Now, the viewTrainSchedules method would simply return the list of schedules.
+
+For platform management, perhaps the system allows viewing platform availability, which involves checking each platform's reservations.
+
+Now, handling the simulation:
+
+Each Train thread is started when the schedule is added. The thread runs and processes each ScheduleEntry, waiting until the appropriate times to log arrivals and departures.
+
+But using Thread.sleep() with real-time delays. For example, if a train is scheduled to depart in an hour, the thread sleeps for an hour. But this is not practical for a simulation. So perhaps the time is scaled down. For example, each real-world second represents a minute or an hour in the simulation.
+
+But how to implement that. One approach is to have a time scaling factor. For example, 60 seconds real time equals 1 hour simulation time. So, when calculating the delay, multiply the simulation time difference by the scaling factor.
+
+But this requires that the Train threads know the scaling factor. So, the simulation could have a configurable scaling factor, say 1:60 (1 real second = 60 simulation seconds).
+
+In code:
+
+long simulationDelay = (entry.getArrivalTime().toEpochSecond() - simulationStartTime.toEpochSecond()) * scalingFactor;
+
+But this requires tracking the simulation start time and scaling factor.
+
+Alternatively, the system can use a virtual clock that is updated by a separate thread, and all Train threads refer to this clock. But this adds complexity.
+
+For simplicity, perhaps the problem allows using real time without scaling, and the code uses Thread.sleep() with the actual delay. But for testing, this is impractical, so perhaps the code uses a scaling factor of 1000, where 1 second real time equals 1000 seconds simulation time.
+
+But how to implement this:
+
+When the simulation starts, the current time is recorded as the simulation start time. Each schedule entry's time is converted to a delay relative to the simulation start time, multiplied by the scaling factor.
+
+For example, if the simulation start time is 0 (epoch), and a schedule entry is at time 3600 (1 hour), and the scaling factor is 1000, then the real delay is 3600 / 1000 = 3.6 seconds.
+
+But this requires converting all schedule times to a common epoch, which could be the simulation start time.
+
+But this requires that the schedule times are provided as offsets from the simulation start time, which may not be the case. The problem statement doesn't specify, but real train schedules use absolute times.
+
+This is getting complicated. Perhaps the simplest way is to ignore time scaling and use real-time delays, but mention in the code comments that this is a placeholder and could be modified for a scaled simulation.
+
+Alternatively, the code uses a SimulationClock class that can be paused, scaled, etc., but that's beyond the scope here.
+
+Given the time constraints, perhaps the code uses real system time, and the schedules are added with future times. The threads will sleep until those times.
+
+Now, putting all this together, the code structure would look like:
+
+Main classes:
+
+- TrainScheduler: Manages stations, platforms, schedules, and active trains. Implements add, cancel, view methods.
+
+- Station: Has a name and list of platforms.
+
+- Platform: Has a number, list of TimeInterval reservations, and a ReentrantLock.
+
+- TimeInterval: Has start and end times, and a reference to the TrainSchedule.
+
+- TrainSchedule: Has a list of ScheduleEntry objects and a unique ID.
+
+- ScheduleEntry: Has a station, platform, arrival and departure times.
+
+- Train: Extends Thread. Simulates the train's journey by sleeping until arrival/departure times.
+
+Now, implementing this in Java.
+
+First, the TimeInterval class:
+
+public class TimeInterval {
+
+private LocalDateTime start;
+
+private LocalDateTime end;
+
+private TrainSchedule schedule;
+
+public TimeInterval(LocalDateTime start, LocalDateTime end, TrainSchedule schedule) {
+
+this.start = start;
+
+this.end = end;
+
+this.schedule = schedule;
+
+}
+
+// Getters and setters...
+
+}
+
+The ScheduleEntry class:
+
+public class ScheduleEntry {
+
+private Station station;
+
+private int platform;
+
+private LocalDateTime arrivalTime;
+
+private LocalDateTime departureTime;
+
+// Constructor, getters...
+
+}
+
+The TrainSchedule class:
+
+public class TrainSchedule {
+
+private String trainId;
+
+private List<ScheduleEntry> entries;
+
+// Constructor, getters...
+
+}
+
+The Station class:
+
+public class Station {
+
+private String name;
+
+private List<Platform> platforms;
+
+public Platform getPlatform(int number) {
+
+for (Platform p : platforms) {
+
+if (p.getNumber() == number) {
+
+return p;
+
+}
+
+}
+
+return null;
+
+}
+
+// Constructor, getters...
+
+}
+
+The Platform class:
+
+public class Platform {
+
+private int number;
+
+private List<TimeInterval> reservations = new ArrayList<>();
+
+private ReentrantLock lock = new ReentrantLock();
+
+public void lock() {
+
+lock.lock();
+
+}
+
+public void unlock() {
+
+lock.unlock();
+
+}
+
+// Getters...
+
+}
+
+The Train class:
+
+public class Train extends Thread {
+
+private TrainSchedule schedule;
+
+private String trainId;
+
+public Train(TrainSchedule schedule) {
+
+this.schedule = schedule;
+
+this.trainId = schedule.getTrainId();
+
+}
+
+@Override
+
+public void run() {
+
+try {
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+LocalDateTime arrivalTime = entry.getArrivalTime();
+
+LocalDateTime departureTime = entry.getDepartureTime();
+
+// Wait until arrival time
+
+long delay = calculateDelay(arrivalTime);
+
+if (delay > 0) {
+
+Thread.sleep(delay);
+
+}
+
+System.out.println("Train " + trainId + " arrived at " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + arrivalTime);
+
+// Wait until departure time
+
+delay = calculateDelay(departureTime);
+
+if (delay > 0) {
+
+Thread.sleep(delay);
+
+}
+
+System.out.println("Train " + trainId + " departed from " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + departureTime);
+
+}
+
+} catch (InterruptedException e) {
+
+System.out.println("Train " + trainId + " was canceled.");
+
+}
+
+}
+
+private long calculateDelay(LocalDateTime targetTime) {
+
+LocalDateTime now = LocalDateTime.now();
+
+Duration duration = Duration.between(now, targetTime);
+
+return duration.toMillis();
+
+}
+
+}
+
+But the calculateDelay method will return a negative value if targetTime is in the past. So the code should handle that by proceeding immediately.
+
+However, using LocalDateTime.now() assumes that the system's clock is correct and that the schedule times are set accordingly. This may not be ideal for a simulation, but for the purposes of this problem, it's acceptable.
+
+The TrainScheduler class:
+
+public class TrainScheduler {
+
+private List<Station> stations = new ArrayList<>();
+
+private List<TrainSchedule> trainSchedules = new ArrayList<>();
+
+private Map<TrainSchedule, Train> activeTrains = new HashMap<>();
+
+public boolean addTrainSchedule(TrainSchedule schedule) {
+
+List<Platform> platformsToReserve = new ArrayList<>();
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Station station = entry.getStation();
+
+Platform platform = station.getPlatform(entry.getPlatform());
+
+if (platform == null) {
+
+return false; // Platform doesn't exist
+
+}
+
+platformsToReserve.add(platform);
+
+}
+
+// Sort platforms to lock in a fixed order
+
+platformsToReserve.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+
+try {
+
+// Acquire locks
+
+for (Platform p : platformsToReserve) {
+
+p.lock();
+
+}
+
+// Check availability
+
+for (int i = 0; i < schedule.getEntries().size(); i++) {
+
+ScheduleEntry entry = schedule.getEntries().get(i);
+
+Platform platform = platformsToReserve.get(i);
+
+if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
+
+return false;
+
+}
+
+}
+
+// Reserve platforms
+
+for (int i = 0; i < schedule.getEntries().size(); i++) {
+
+ScheduleEntry entry = schedule.getEntries().get(i);
+
+Platform platform = platformsToReserve.get(i);
+
+TimeInterval interval = new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule);
+
+platform.getReservations().add(interval);
+
+}
+
+// Add to schedules and start train thread
+
+synchronized (trainSchedules) {
+
+trainSchedules.add(schedule);
+
+}
+
+Train train = new Train(schedule);
+
+activeTrains.put(schedule, train);
+
+train.start();
+
+return true;
+
+} finally {
+
+for (int i = platformsToReserve.size() - 1; i >= 0; i--) {
+
+platformsToReserve.get(i).unlock();
+
+}
+
+}
+
+}
+
+private boolean isPlatformAvailable(Platform platform, LocalDateTime start, LocalDateTime end) {
+
+for (TimeInterval interval : platform.getReservations()) {
+
+if (interval.getStart().isBefore(end) && interval.getEnd().isAfter(start)) {
+
+return false;
+
+}
+
+}
+
+return true;
+
+}
+
+public boolean cancelTrainSchedule(TrainSchedule schedule) {
+
+synchronized (trainSchedules) {
+
+if (!trainSchedules.remove(schedule)) {
+
+return false;
+
+}
+
+}
+
+Train train = activeTrains.get(schedule);
+
+if (train != null) {
+
+train.interrupt();
+
+activeTrains.remove(schedule);
+
+}
+
+List<Platform> platformsToUpdate = new ArrayList<>();
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+
+platformsToUpdate.add(platform);
+
+}
+
+platformsToUpdate.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+
+try {
+
+for (Platform p : platformsToUpdate) {
+
+p.lock();
+
+}
+
+for (ScheduleEntry entry : schedule.getEntries()) {
+
+Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+
+Iterator<TimeInterval> it = platform.getReservations().iterator();
+
+while (it.hasNext()) {
+
+TimeInterval interval = it.next();
+
+if (interval.getSchedule() == schedule) {
+
+it.remove();
+
+}
+
+}
+
+}
+
+} finally {
+
+for (int i = platformsToUpdate.size() - 1; i >= 0; i--) {
+
+platformsToUpdate.get(i).unlock();
+
+}
+
+}
+
+return true;
+
+}
+
+// Other methods like viewSchedules, etc.
+
+}
+
+But this is a simplified version. Some notes:
+
+- The addTrainSchedule method collects all platforms from the schedule's entries, sorts them, locks them, checks availability, reserves them, adds the schedule to the list, and starts the Train thread.
+
+- The isPlatformAvailable method checks if the new time interval overlaps with any existing ones. Overlap occurs if the new start is before an existing end and the new end is after an existing start.
+
+- The cancel method removes the schedule from the list, interrupts the train thread, and removes the time intervals from the platforms.
+
+Potential issues:
+
+- The use of == to compare schedules in the cancel method. Should use .equals() instead, but assumes that TrainSchedule objects are unique and compared by reference. Alternatively, use a unique identifier.
+
+- Error handling: What if a station or platform doesn't exist? The code currently returns false if a platform is not found.
+
+- The calculateDelay method in the Train class uses LocalDateTime.now(), which relies on the system's clock. This may not be suitable for a simulation that starts at a different time.
+
+- The Train thread uses Thread.sleep() with the calculated delay, which may be negative if the scheduled time is in the past, leading to immediate processing.
+
+- The simulation uses real time, so testing with schedules that have times in the future is necessary.
+
+But overall, this design covers the requirements:
+
+- Scheduling trains with platform availability checks.
+
+- Dynamic updates (add/cancel).
+
+- Real-time simulation using multithreading.
+
+- Data management with ArrayLists and proper synchronization.
+
+Possible improvements:
+
+- Use a unique identifier for TrainSchedules to avoid reference comparison.
+
+- Handle time zones properly in schedule times.
+
+- Use a virtual clock for simulation time, allowing scaling.
+
+- Implement a proper logging system instead of System.out.println.
+
+- Add methods to view schedules and platform availability.
+
+But given the problem constraints and time, this should suffice.
