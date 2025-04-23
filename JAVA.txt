@@ -1,383 +1,455 @@
 QUESTION 1
-Okay, I need to design a train scheduling system for the Passenger Rail Agency of South Africa. Let me start by understanding the problem statement and requirements.
+Okay, let's tackle this E-Hailing Bicycle Management System problem. The user wants me to design a Java program that manages bicycles, users, and the borrowing process. Let's go through the requirements step by step.
 
-First, the system must handle scheduling trains without overlapping platform usage at any station. So, when adding a train schedule, I need to check that no other train is using the same platform at the same time. That sounds like I need to track each station's platforms and their availability over time.
+First, the main entities here are Bicycles and Users. The system needs to track each bicycle's details like name, make, type, and availability. For users, it's name, ID, and the bicycles they've borrowed. The key point is that each user can borrow up to 2 bicycles, specifically for families with children 18 or below. Hmm, the wording here is a bit confusing. Does it mean that the user must have a child under 18 to borrow, or that the bicycles are for such families? The problem statement says "specifically for families with children 18 years or below." Maybe the borrowing limit is because families might need two bikes, one for parent and child. But the requirement says each user can borrow up to 2, so maybe the family aspect is just context, and the main rule is the 2-bike limit. I'll proceed with that assumption unless clarified otherwise.
 
-Dynamic updates mean adding new schedules and canceling existing ones. So the system should allow modifications. Also, real-time simulation using multithreading where each train is a thread. Each thread will simulate the train's journey, arrival, departure, etc. And data management using ArrayLists for schedules and platforms.
+Next, the system must use a multidimensional array to store bicycle information. Multidimensional arrays in Java are arrays of arrays. So, perhaps a 2D array where each row represents a bicycle and columns represent attributes like name, make, type, availability. But storing objects in arrays can be tricky. Alternatively, maybe the bicycles are stored in a 2D array of Strings, where each row is a bicycle's details. That might be more in line with the requirement. So, instead of using an ArrayList of Bicycle objects, use a 2D array. But handling dynamic data with arrays can be difficult because arrays have fixed sizes. So, maybe the company has a fixed number of bicycles, or the array is resized when needed. Alternatively, use a List structure, but the requirement specifies a multidimensional array. Need to comply with that.
 
-Let me break down the components. Maybe each Station has a list of Platforms. Each Platform has a schedule of TrainSchedules, which include arrival and departure times. When adding a train, check all platforms in the stations it passes through to ensure no overlap.
+Let me outline the classes needed. A Bicycle class with attributes name, make, type, and availability. A User class with name, ID, and a list of borrowed bicycles. But since the system must use a multidimensional array for bicycles, perhaps store all bicycles in a 2D array. Each bicycle's details are stored as a row in the array. For example, each row could have columns: name, make, type, availability (as a boolean or string). But handling operations like borrowing would require searching the array.
 
-Wait, but how do the trains move between stations? Maybe each TrainSchedule has a route, which is a list of stations with arrival and departure times. But that might complicate things. Alternatively, the system could model each station's platforms and their reservations.
+The menu-driven program needs options to add/view bicycles, borrow, return, display borrowed, search, and exit. Let's think about the flow.
 
-Alternatively, perhaps each Train has a schedule that includes the stations it stops at, along with arrival and departure times. For each station in the train's route, we need to reserve the platform at that station for the time interval [arrival, departure]. So, when adding a train schedule, for each station in its route, check if the platform is available during those times.
+When adding a bicycle, the user inputs name, make, type, and it's added to the array. Since arrays are fixed size, maybe initialize with a certain size and expand when necessary. Alternatively, use a dynamic structure like ArrayList internally but convert to a 2D array when needed. But the requirement says to use a multidimensional array. Hmm. So perhaps manage the bicycles in a 2D array, and when adding, create a new array with increased size. But that's inefficient. Alternatively, set a maximum capacity, but that's not user-friendly. Maybe the problem expects a fixed-size array for simplicity, but that's not practical. Alternatively, the multidimensional array could be a matrix where each row is a bicycle, and each column represents an attribute. So, perhaps a String[][] where each row is a bicycle's details.
 
-So the main data structures would be:
+Wait, maybe the requirement is to use a 2D array to represent different categories or types of bicycles. For example, rows as types and columns as different models. But the problem statement isn't clear. The exact wording is: "the system uses a multidimensional array to store information about the bicycles." So probably, each bicycle is a row, and columns are the attributes. So for example, bicycleData[row][0] = name, [row][1] = make, [row][2] = type, [row][3] = availability.
 
-- A list of stations, each station having multiple platforms.
+But in Java, arrays are homogeneous, so all elements are Strings. So availability would be stored as a String "Available" or "Unavailable". That's manageable.
 
-- Each platform has a list of time intervals during which it's occupied.
+So, the Bicycle management would involve a 2D String array. Now, how to handle adding bicycles. Since arrays are fixed size, perhaps initialize with a certain size and then expand when needed by creating a new array and copying elements. Alternatively, use a List of String arrays and then convert to a 2D array when needed. But the requirement says to use a multidimensional array. So perhaps manage the array dynamically by resizing it each time a bicycle is added. That's a bit involved but doable.
 
-When adding a train, for each station in its route, check the assigned platform at that station to see if the time intervals don't overlap with existing reservations.
+Alternatively, use a List<String[]> to store bicycles and then convert it to a 2D array when necessary. But the problem might expect the use of a multidimensional array directly. Let's proceed with a List of String arrays for flexibility and then convert to a 2D array when needed, but the problem might require using a multidimensional array from the start. Hmm. Let me check the exact requirement again: "the system uses a multidimensional array to store information about the bicycles." So the storage must be a multidimensional array. So perhaps the bicycles are stored in a 2D array, and when adding a new bicycle, a new array is created with increased size. But that's inefficient. For simplicity in a small system, perhaps a fixed maximum number of bicycles. But in the real world, that's not feasible. But given that this is a programming problem, maybe the expectation is to use a 2D array and handle it with a fixed initial size, perhaps with a maximum capacity. Or, use a dynamic approach by resizing the array each time. Let's proceed with a dynamic approach.
 
-But how to model the routes? Maybe a TrainSchedule object contains a list of StationTime objects, each representing a station, arrival time, departure time, and platform number.
+So, each time a bicycle is added, create a new array with size+1 and copy the old data. But that's inefficient. Alternatively, use an initial capacity and double it when full. But for simplicity in this case, perhaps just create a new array each time. For example:
 
-But the problem statement mentions "scheduling trains" with platform assignments such that no two trains use the same platform at the same time at any station. So for each station, each platform can have only one train at a time.
+String[][] bicycles = new String[0][4];
 
-So, when adding a new train schedule, for each station in the train's route, the system must check if the platform at that station is available during the specified times.
+When adding a bike, create a new array with length+1, copy existing rows, and add the new row.
 
-Now, the data management uses ArrayList. So each Station can have an ArrayList of Platforms, and each Platform has an ArrayList of TimeSlot or ScheduleEntry objects representing the times it's occupied.
+But that's going to be O(n) time for each addition. Not efficient, but acceptable for a small-scale system as per the problem.
 
-Now, the Train class might need to be a thread. Each train's run() method would simulate its journey. For example, when the current time reaches the departure time, the train departs, arrives at the next station, waits, departs again, etc.
+Now, for the User class. Each user can have up to 2 bicycles. So each user has a list (or array) of borrowed bicycles. The User class can have a String[] borrowedBicycles of size 2, where each element is the bicycle ID or name. Or, since the bicycles are stored in the array, perhaps track the indices or references. But given that the bicycles are in a 2D array, perhaps track the index of the bicycle in the array. Wait, but if the array is dynamic (changing size), indices might not be reliable. So perhaps each bicycle has a unique identifier, which is stored in the array. So the bicycle's name could be the unique ID, but that's not safe. Alternatively, have an ID field. Hmm. The problem states that each bicycle has name, make, type, and availability. So perhaps the name is unique. But the problem doesn't specify. So for simplicity, assume that each bicycle is uniquely identified by its name. So when a user borrows a bicycle, the system checks if the bicycle is available, then marks it as unavailable and adds it to the user's borrowed list.
 
-But how to handle the real-time simulation. Maybe the system has a global clock, but that's complicated. Alternatively, each train thread sleeps until its scheduled departure time, then starts moving through stations.
+Now, the borrowing process: when a user wants to borrow a bicycle, the system checks if the user has less than 2 bicycles borrowed, then checks if the bicycle is available, then updates the bicycle's availability and adds it to the user's list.
 
-Wait, but simulating the real-time operation would require that the threads represent the trains moving according to their schedule. So each Train thread would have a schedule, and when the simulation starts, each train's thread would start executing based on their schedule times.
+Returning: the user selects a bicycle to return, the system marks it as available again and removes it from the user's list.
 
-But how to manage the timing in the threads? For example, if a train is scheduled to depart at 10:00 AM, the thread would need to wait until the simulated time reaches 10:00 AM. But simulating time could be tricky. Maybe use a Timer or ScheduledExecutorService to schedule tasks at specific times. Or perhaps each thread calculates the delay until its next event and sleeps for that duration.
+Display borrowed bicycles: for a given user, show the list of bicycles they've borrowed.
 
-Alternatively, the system could have a simulation clock that starts at a certain time and increments, and all threads check the clock. But that might be more complex. Using real-time waiting with Thread.sleep() might not be feasible if we want to simulate time faster than real-time.
+Search for a bicycle: search by name, make, or type and display matching bicycles.
 
-Hmm. The problem says "real-time simulation" but it's not clear if it's real-time or simulated time. Maybe the threads just represent the trains moving through their schedules, with each action (arrival, departure) happening in sequence with delays based on the schedule. For example, a train departs station A at 10:00, arrives at station B at 10:30. The thread would wait 30 minutes (simulated as maybe 30 seconds) between events. But scaling the time is an issue. Alternatively, the simulation uses actual system time but scaled. But that's up to implementation.
+The menu-driven program will have options:
 
-Alternatively, the threads just process the schedule step by step, using Thread.sleep() with a scaled duration. For example, if the schedule says departure is in 1 hour, the thread sleeps for 1 minute to represent that. So the time is scaled down. That could be a way to handle it.
+1. Add Bicycle
 
-But perhaps for simplicity, each Train thread, when started, processes its schedule step by step, sleeping for the required duration between each step. For example, the train's schedule has departure from station A at time T0, arrives at station B at T1, etc. The thread would calculate the time difference between now (simulated start time) and T0, wait that amount (scaled perhaps), then depart, then wait until T1 - T0, arrive at B, etc.
+2. View All Bicycles
 
-But how to handle the initial scheduling. The system needs to manage all the trains' schedules, and when the simulation starts, all the trains' threads are started, each handling their own schedule.
+3. Borrow Bicycle
 
-But then the system needs to track the current simulation time. Maybe all the trains use the system's real clock, but that's not matching. Alternatively, the simulation starts at a certain time, say 00:00, and each train's schedule is relative to that. But that's getting complicated.
+4. Return Bicycle
 
-Alternatively, each Train thread is responsible for its own timing. When the train's start time comes (based on its schedule), it begins its journey. For example, if the train is scheduled to depart at 10:00, and the current system time is 9:50, the thread waits for 10 minutes (in real time) then starts. But this would require the simulation to be running in real time, which might not be desired.
+5. Display Borrowed Bicycles
 
-But the problem says "real-time simulation", which might mean that the simulation runs in real time, so a 1-hour journey in the schedule takes 1 hour in real time. But that's probably not practical for testing. So perhaps the simulation uses a time scale, like 1 second of real time equals 1 minute of simulation time. So the threads can adjust their sleep times accordingly.
+6. Search Bicycle
 
-Alternatively, the problem might not require actual real-time simulation but just the use of threads to represent each train's movement, with the threads processing the schedule steps (arrival, departure) in sequence. For example, a train arrives at a station, waits for a certain time (simulated by a sleep), then departs. So the code could use Thread.sleep() with some duration to simulate the time between events.
+7. Exit
 
-But how to handle the actual schedule times. Let's think of each TrainSchedule as having a list of events (arrive at station X platform Y at time T, depart at time T+delta). So when the simulation starts, the train's thread checks the current simulation time, and when it's time to arrive, it does so, then waits until departure time, departs, and so on.
+Now, let's think about the data structures.
 
-But managing the simulation time is a challenge. Maybe the system uses a global clock that starts when the simulation begins. All train threads track their schedule relative to this clock. For example, if the simulation starts at real time 0, and a train's first event is at simulation time 100 (seconds), the thread would wait 100 seconds (real time) before executing that event.
+The main data structures are:
 
-But this requires that all threads have access to the simulation start time and calculate their delays based on that. That could work.
+- A multidimensional array (String[][]) to store bicycles. Each row is a bicycle with columns: name, make, type, availability.
 
-Alternatively, use a virtual clock, where each second of real time represents a minute or hour of simulation time. But this may complicate things.
+- A list of users. Each user has an ID, name, and a list of borrowed bicycles (possibly as an array of Strings, the bicycle names).
 
-Alternatively, for simplicity, the threads just process their schedule step by step, with each step having a fixed delay. For example, depart from station A, sleep for 5 seconds (simulating travel time), arrive at station B, sleep for 2 seconds (simulating stop), depart, etc. But this approach doesn't tie the simulation to actual clock times. However, the problem mentions scheduling with specific times (like 10:00 AM), so the system needs to manage schedules based on those times.
+But how to handle users? The problem says the system must track users. So perhaps a list of User objects, where each User has a name, ID, and an array or list of borrowed bicycle names.
 
-This makes me think that each TrainSchedule has a list of events with specific times. The simulation starts at a certain real time, and each event is scheduled to occur at a specific simulation time. The threads need to wait until their event's simulation time is reached.
+Now, handling the menu:
 
-But how to handle the simulation time progression. One approach is to have a SimulationClock class that keeps track of the current simulation time, which can be independent of real time. Then, each Train thread checks the simulation clock and waits until their event time. However, this requires that the simulation clock is updated in a way that the threads can access it, possibly with some form of time acceleration.
+The program starts by displaying the menu and taking user input. Each option triggers a method.
 
-But that's getting complicated. Maybe for the scope of this problem, we can simplify by using real time, where each event is scheduled to happen after a certain delay from the start of the simulation. For example, if a train is scheduled to depart at 10:00 AM, and the simulation starts at 9:50 AM real time, the thread would wait 10 minutes (real time) to simulate the departure. But this would tie the simulation to real time, which might not be practical. Alternatively, the simulation starts at time 0, and each train's schedule is relative to that. For example, departure at 10:00 would be 10 minutes after the simulation starts, with each minute in the schedule being a second in real time. But this requires scaling.
+For adding a bicycle, the user inputs name, make, type. The availability is set to "Available" by default. Then, add this to the bicycles array.
 
-Hmm. Let's think about the code structure.
+For viewing, loop through the bicycles array and display each entry.
 
-First, the data structures:
+Borrowing a bicycle: ask for user ID, check if the user exists and has less than 2 bicycles. Then, display available bicycles, let the user choose one, mark it as unavailable, and add to the user's borrowed list.
 
-- TrainSchedule class: Contains information about the train's route, including stations, platforms, arrival and departure times.
+Returning: user selects a bicycle to return, mark it as available, remove from their list.
 
-But how to model the route. Maybe each TrainSchedule has a list of ScheduleEntry objects, each representing a stop at a station, with arrival time, departure time, platform number, and station.
+Display borrowed: show all bicycles borrowed by a user.
 
-So, for example:
+Search: by name, make, or type. Loop through the bicycles array and check if any attribute matches the search term.
 
-class ScheduleEntry {
+Now, implementing the multidimensional array:
 
-Station station;
+In Java, to dynamically resize the array each time a bicycle is added, we can have a helper method that creates a new array with size+1, copies the old data, and adds the new bicycle.
 
-int platform;
+Alternatively, use a List<String[]> to manage the bicycles and then convert it to a 2D array when needed. But the problem says to use a multidimensional array for storage, so perhaps directly manage the array.
 
-LocalDateTime arrivalTime;
+But handling dynamic resizing with arrays is cumbersome. Maybe for the sake of the problem, use a List<String[]> to store bicycles and convert it to a 2D array whenever necessary. But that might not comply with the requirement. The requirement explicitly states to use a multidimensional array. So perhaps proceed with a 2D array and handle resizing.
 
-LocalDateTime departureTime;
+So, code outline:
 
-}
+- Bicycle data is stored in a String[][] array.
 
-Then, the TrainSchedule would have a list of ScheduleEntry objects, ordered by time.
+- Users are stored in a List<User>.
 
-When adding a train schedule, for each ScheduleEntry in the list, we need to check that the platform at the station is not occupied during [arrivalTime, departureTime].
+- Each User has a name, ID, and a list of borrowed bicycle names (as a List<String> or a String array of size 2).
 
-So the Station class would have a list of Platforms, and each Platform has a list of occupied time intervals.
+But the problem statement requires the system to track users with name, ID, and borrowed bicycles. So User class:
 
-So:
+class User {
 
-class Station {
+private String name;
 
-String name;
+private String id;
 
-List<Platform> platforms;
+private List<String> borrowedBicycles;
 
-}
+public User(String name, String id) {
 
-class Platform {
+this.name = name;
 
-int number;
+this.id = id;
 
-List<TimeInterval> reservations;
-
-}
-
-class TimeInterval {
-
-LocalDateTime start;
-
-LocalDateTime end;
-
-TrainSchedule schedule;
+this.borrowedBicycles = new ArrayList<>();
 
 }
 
-When adding a new TrainSchedule, for each ScheduleEntry in its route, check the corresponding Station and Platform's reservations to ensure that the new time interval doesn't overlap with any existing ones.
+// getters and setters
 
-If any of the checks fail, the schedule can't be added.
+}
 
-Now, for the concurrency handling: when multiple threads (trains) are trying to access and modify the platform reservations, we need to ensure that the data structures are thread-safe.
+Now, the main system class would manage users and bicycles.
 
-Since ArrayLists are not thread-safe, we need to synchronize access to them. So when adding or canceling a schedule, we need to use synchronization to prevent race conditions.
+But the main challenge is the multidimensional array for bicycles. Let's proceed.
 
-But the problem states to use ArrayList for data management, which implies that the code will handle synchronization manually.
+The code will have:
 
-So, for each Platform's reservations list, any access (read or write) must be synchronized on a common lock. Alternatively, use synchronized blocks or methods to ensure atomicity.
+- A BicycleManager class that handles the 2D array.
 
-In Java, for example, each Platform instance could have a lock object, and when checking or modifying the reservations, the code uses synchronized (platform.lock) { ... }.
+- A UserManager class that handles the list of users.
 
-But perhaps using a concurrent data structure would be better, but the problem specifies using ArrayList. So we have to manage synchronization ourselves.
+- The main menu loop.
 
-Now, the Train class (which is a Thread) would process its schedule entries. When the simulation starts, each Train thread is started. Each thread waits until the arrival time of the first schedule entry, then arrives at the station, occupies the platform, waits until departure time, departs, releases the platform, moves to the next station, etc.
+But perhaps for simplicity, put everything in the main class with static methods.
 
-But how to handle the timing. For example, if a train's first schedule entry is arrival at 10:00, the thread needs to wait until the simulation time reaches 10:00. But how is the simulation time tracked?
+Alternatively, structure the code with separate classes.
 
-Alternatively, the simulation starts at a certain real time, and each schedule's times are relative to that. But that's not ideal.
+But given the problem's scope, let's structure it as follows:
 
-Alternatively, the simulation uses a virtual clock. For example, when the simulation starts, the virtual time is 0, and each train's schedule entries are based on this virtual time. The virtual time can be advanced by a separate thread, and the train threads check the virtual time to know when to perform their actions.
+- A Bicycle class is not used since the data is stored in a 2D array. Instead, each bicycle is a row in the array with columns: name, make, type, availability.
 
-But this adds complexity. Alternatively, each Train thread calculates the delay until its next event based on the current real time and the schedule's time. For example, if the train is scheduled to depart at 10:00:00, and the current real time is 09:59:00, the thread waits for 60 seconds.
+Wait, but the problem says "the system uses a multidimensional array to store information about the bicycles." So perhaps no Bicycle class, just the array.
 
-But this requires that the system's real time is synchronized with the schedule times, which may not be flexible. However, it's a possible approach for the simulation.
+So, the system will have:
 
-Alternatively, the schedules are relative. For example, when the simulation starts, all times are considered as offsets from the start time. So a train scheduled to depart at 10:00 would actually depart 10 minutes after the simulation starts (if the start time is considered as 0). But this way, the code can use relative delays.
+- String[][] bicycles = new String[0][4]; // Initially empty.
 
-But in the problem statement, the scheduling likely involves absolute times (like specific hours and minutes), so the code needs to handle that.
+Each time a bicycle is added, resize the array.
 
-Another approach is to have the TrainSchedule store times as offsets from the simulation start. For example, the first departure is at time 0, then subsequent events are relative. But this depends on how the system is designed.
+So, when adding a bicycle:
 
-Hmm. Perhaps the easiest way to handle time in the simulation is to have each Train thread schedule its events using a timer. For example, when a train is added to the system, its schedule is parsed into a series of events (arrive at station X at time T, depart at T + delta). The thread then schedules these events using a Timer or ScheduledExecutorService, which triggers the events at the appropriate times.
+String[][] newBicycles = new String[bicycles.length + 1][4];
 
-But how to manage the timing if the simulation is supposed to run faster or slower than real time.
+System.arraycopy(bicycles, 0, newBicycles, 0, bicycles.length);
 
-Alternatively, for the purposes of this problem, perhaps the simulation runs in real time, and the code uses the system's real clock. So, when a train is scheduled to depart at 10:00:00, the thread uses a ScheduledExecutorService to schedule a task at that real time. But this would require that the system's clock is set correctly, which may not be practical for testing.
+newBicycles[bicycles.length] = new String[]{name, make, type, "Available"};
 
-Alternatively, when the simulation starts, it sets a base time (e.g., the current system time), and all schedule times are converted into delays relative to this base time. For example, if a train is scheduled to depart at 10:00, and the base time is 09:50, the delay is 10 minutes. The thread then waits for that delay.
+bicycles = newBicycles;
 
-This approach would work. So the steps would be:
+This way, each addition increases the array size by 1.
 
-1. When the simulation starts, record the current system time as the base time.
+For searching, loop through the bicycles array and check each row's columns.
 
-2. For each TrainSchedule, calculate the delay for each event relative to the base time.
+Now, for borrowing:
 
-3. Schedule each event (arrival, departure) using a timer with the calculated delay.
+When a user wants to borrow a bicycle, they must select from available bicycles. The system checks if the user has less than 2 borrowed. Then, the selected bicycle's availability is set to "Unavailable".
 
-But this requires that the events in the schedule are absolute times (e.g., LocalDateTime), and the base time is known.
+But since the array is a String array, to update availability, find the bicycle's row and set the fourth element to "Unavailable".
 
-This seems manageable. But how to handle schedules that have events in the past relative to the base time? Probably, those would be ignored or considered as already departed.
+Similarly for returning.
 
-But in the context of the problem, perhaps the schedules are added with future times, so when the simulation starts, all events are in the future.
+Now, the User management:
 
-Now, for the code structure:
+Users can be stored in a List<User> users = new ArrayList<>();
 
-We'll need:
+When borrowing, the user enters their ID, and the system checks if the user exists. If yes, check the number of borrowed bicycles. If less than 2, proceed.
 
-- A TrainScheduler class that manages the stations, platforms, and train schedules.
+Now, the steps for borrowing:
 
-- A Train class that extends Thread (or implements Runnable) to simulate the train's journey.
+1. Ask for user ID.
 
-- ScheduleEntry and other supporting classes.
+2. Find the user in the users list.
 
-The TrainScheduler would have methods to addTrainSchedule, cancelTrainSchedule, viewSchedules, etc.
+3. If user not found, error.
 
-When adding a train schedule, the TrainScheduler checks for platform availability at each station in the schedule. If available, reserves the platforms by adding the time intervals to their respective platform's reservations list.
+4. Check if user has less than 2 borrowed bicycles.
 
-The Train class, when started, would handle the simulation of the train's journey. For each ScheduleEntry, the train arrives at the station, occupies the platform, waits until departure time, then departs and releases the platform.
+5. Display available bicycles.
 
-But how to handle the waiting. For example, when the train arrives, it needs to hold the platform until departure. So during that time, other trains cannot be scheduled on the same platform.
+6. User selects a bicycle (by name).
 
-But when the Train thread is waiting (sleeping) until departure time, the platform is marked as occupied. Once departure time is reached, the platform is released.
+7. Check if the bicycle exists and is available.
 
-Wait, but the platform's reservations are stored in the data structure. So when the schedule is added, the time intervals are already reserved. The Train thread doesn't need to modify the platform's availability during runtime; the reservations are pre-allocated when the schedule is added.
+8. Update the bicycle's availability to "Unavailable".
 
-But dynamic updates, like canceling a train schedule, would require removing those reservations.
+9. Add the bicycle's name to the user's borrowed list.
 
-Wait, that's a key point. When adding a train schedule, the system reserves the platforms at the required times. So the platform's availability is checked and reserved upfront, not at runtime. So the simulation threads (trains) don't need to do anything regarding platform allocation during runtime, except perhaps verifying that they have the reservation.
+Returning:
 
-Wait, but perhaps the system checks platform availability when adding the schedule. Once added, the reservations are in place. So during the simulation, the trains just follow their schedules, and the platform is already reserved for them. So other trains cannot be scheduled on the same platform during those times.
+1. Ask for user ID.
 
-But then, the simulation is just the trains moving through their pre-reserved platforms. So the threads don't need to interact with the platform reservations during runtime, except perhaps to mark when they actually arrive and depart, but that's not necessary if the reservations are already in place.
+2. Find user.
 
-Hmm, perhaps the platform reservations are made at schedule addition time. The Train threads then just simulate their movement, but the actual platform assignments are already fixed. So concurrency during the simulation is not a problem because the schedules have already reserved the platforms.
+3. Display their borrowed bicycles.
 
-But the dynamic updates (like canceling a schedule) would require removing those reservations.
+4. User selects one to return.
 
-So the main concurrency issues are:
+5. Find the bicycle in the array and set availability to "Available".
 
-1. When adding or canceling a schedule, modifying the platform reservations in a thread-safe way.
+6. Remove from user's borrowed list.
 
-2. During the simulation, multiple Train threads may be accessing shared resources (like printing logs, etc.), but the platform reservations are already fixed.
+Now, potential issues:
 
-So, the critical part is ensuring that adding and canceling schedules are thread-safe operations, as they modify the ArrayLists holding the reservations.
+- Handling concurrency is not mentioned, so assume single-threaded.
 
-In Java, ArrayLists are not thread-safe, so when multiple threads (like a user adding a schedule via an interface while the simulation is running) try to modify the ArrayLists, we need synchronization.
+- Input validation: ensure that inputs are correct (e.g., when selecting a bicycle to borrow, it exists and is available).
 
-So, the TrainScheduler class's methods (add, cancel) should be synchronized to prevent concurrent modifications.
+- The user must be created before borrowing. How are users added? The problem statement says the system must track users, but the requirements don't mention adding users. Wait, the problem says: "users (name, ID, and borrowed bicycles)." So the system must manage users, but the requirements mention the menu options as add/view bicycles, borrow, return, display borrowed, search. So perhaps when borrowing, the user must first exist. But how are users added? The problem statement doesn't specify a requirement to add users. This is a missing part. But since the problem says "manage users", perhaps the system should allow adding users as well. However, the given requirements in the numbered list do not include adding users. Wait, the requirements are:
 
-But in a real system, the user interface (like a GUI or admin interface) would be separate from the simulation threads. However, for the purposes of this problem, perhaps we can assume that the adding and canceling are done in a thread-safe manner using synchronized methods or blocks.
+Requirements:
 
-Now, putting this together.
+1. Add and View Bicycles:
 
-Let's outline the classes:
+2. Borrow Bicycles:
 
-1. TrainScheduler: Manages stations, platforms, and schedules. Has methods to add, cancel, view schedules.
+3. Return Bicycles
 
-2. Station: Represents a station with a name and list of platforms.
+4. Display Borrowed Bicycles and Search for a bicycle
 
-3. Platform: Represents a platform in a station, with a list of reserved time intervals.
+5. Create a menu-driven program to implement the above.
 
-4. TimeInterval: Represents a start and end time, and the associated train schedule.
+So the menu options are the five points. But managing users isn't listed. So perhaps users are created implicitly when they borrow a bicycle. But that's not feasible. So perhaps the system requires users to be predefined, or there's a way to enter user details when borrowing. But the problem statement says "the system must track the bicycles ... and users (name, ID, and borrowed bicycles)."
 
-5. TrainSchedule: Contains details of a train's schedule, including a list of ScheduleEntry objects.
+So, the system must have a way to manage users. But the requirements don't mention adding users as a menu option. This is a possible ambiguity. To resolve, perhaps when a user wants to borrow a bicycle, they enter their ID and name, and if not present, the system creates a new user. Alternatively, the system has a separate menu option for adding users. But since the requirements don't mention it, perhaps it's an oversight. In the absence of explicit requirements, I'll assume that when a user wants to borrow a bicycle, they provide their ID and name, and the system checks if they exist; if not, creates a new user.
 
-6. ScheduleEntry: Contains station, platform, arrival and departure times.
+Alternatively, perhaps users are added through a separate menu option not listed. But the problem's requirements don't mention it, so maybe it's not required. Alternatively, the menu options are as given, and user management is handled during borrowing. For example, during the borrow process, the user enters their ID and name, and if the ID doesn't exist, a new user is created.
 
-7. Train: Extends Thread. Simulates the train's journey by processing each ScheduleEntry, sleeping until the appropriate times, and logging arrivals and departures.
+But this may complicate the borrow process. Alternatively, for simplicity, the system doesn't support adding users and uses a predefined list. But the problem says the system must track users, so there must be a way to add them. However, the requirements don't include that in the menu. So this is a problem. Perhaps the user is prompted to enter their ID and name when borrowing, and if the user doesn't exist, they are created. So during the borrow process, the system checks if the user exists. If not, creates a new user.
 
-The process of adding a train schedule:
+So, in code:
 
-- The user provides a TrainSchedule with a list of ScheduleEntry objects.
+When the user selects 'Borrow Bicycle', the system asks for user ID and name. Then checks if a user with that ID exists. If not, creates a new user with that ID and name. Then proceeds to check if they can borrow.
 
-- For each ScheduleEntry in the TrainSchedule, check if the platform at the station is available during the specified time interval.
+But the problem says each user can borrow up to 2 bicycles. So the User class needs to track the borrowed bicycles.
 
-- If all platforms are available, reserve them by adding the TimeInterval to each platform's reservations list.
+Now, integrating all this into code.
 
-- Then, create a Train thread for this schedule and start it when the simulation begins.
+Putting it all together:
 
-Concurrency handling during addition:
+The main class will have:
 
-- When checking and reserving platforms, the TrainScheduler must ensure that no other thread is modifying the platform's reservations at the same time. So, when accessing a platform's reservations list, synchronize on that list or a lock object.
+- A static String[][] bicycles initialized as empty.
 
-But since each platform has its own reservations list, perhaps synchronizing on the platform's list when modifying it.
+- A static List<User> users = new ArrayList<>();
 
-For example:
+- A Scanner for input.
 
-public boolean addTrainSchedule(TrainSchedule schedule) {
+The menu loop will present options 1-7 (with exit as 7).
 
-for (ScheduleEntry entry : schedule.getEntries()) {
+Now, code steps for each option:
 
-Station station = entry.getStation();
+1. Add Bicycle:
 
-Platform platform = station.getPlatform(entry.getPlatform());
+- Prompt for name, make, type.
 
-synchronized (platform.getReservations()) {
+- Resize bicycles array and add new entry with availability "Available".
 
-if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
+2. View All Bicycles:
 
-return false;
+- Loop through bicycles array and print each row.
+
+3. Borrow Bicycle:
+
+- Prompt for user ID and name.
+
+- Check if user exists in users list (by ID). If not, create new user.
+
+- Check if user has less than 2 borrowed bicycles.
+
+- Display available bicycles.
+
+- Prompt user to select a bicycle by name.
+
+- Check if the bicycle exists and is available.
+
+- Update bicycle's availability to "Unavailable".
+
+- Add bicycle name to user's borrowed list.
+
+4. Return Bicycle:
+
+- Prompt for user ID.
+
+- Find user.
+
+- Display their borrowed bicycles.
+
+- Prompt to select one to return.
+
+- Find bicycle in array, set availability to "Available".
+
+- Remove from user's borrowed list.
+
+5. Display Borrowed Bicycles:
+
+- Prompt for user ID.
+
+- Find user.
+
+- Display their borrowed bicycles.
+
+6. Search Bicycle:
+
+- Prompt for search term.
+
+- Search in bicycles array by name, make, or type.
+
+- Display matching bicycles.
+
+Now, implementing this in Java.
+
+But how to handle the multidimensional array resizing. For each addition, the bicycles array is copied into a new array of size +1.
+
+Now, code for adding a bicycle:
+
+public static void addBicycle(Scanner scanner) {
+
+System.out.println("Enter bicycle name:");
+
+String name = scanner.nextLine();
+
+System.out.println("Enter bicycle make:");
+
+String make = scanner.nextLine();
+
+System.out.println("Enter bicycle type:");
+
+String type = scanner.nextLine();
+
+String[][] newBicycles = new String[bicycles.length + 1][4];
+
+for (int i = 0; i < bicycles.length; i++) {
+
+newBicycles[i] = bicycles[i];
+
+}
+
+newBicycles[newBicycles.length - 1] = new String[]{name, make, type, "Available"};
+
+bicycles = newBicycles;
+
+System.out.println("Bicycle added successfully.");
+
+}
+
+For viewing:
+
+public static void viewBicycles() {
+
+if (bicycles.length == 0) {
+
+System.out.println("No bicycles available.");
+
+return;
+
+}
+
+System.out.println("Bicycles:");
+
+for (String[] bike : bicycles) {
+
+System.out.println("Name: " + bike[0] + ", Make: " + bike[1] + ", Type: " + bike[2] + ", Availability: " + bike[3]);
 
 }
 
 }
 
-}
+For borrowing:
 
-// All platforms are available, now reserve them
+public static void borrowBicycle(Scanner scanner) {
 
-for (ScheduleEntry entry : schedule.getEntries()) {
+System.out.println("Enter your user ID:");
 
-Station station = entry.getStation();
+String userId = scanner.nextLine();
 
-Platform platform = station.getPlatform(entry.getPlatform());
+System.out.println("Enter your name:");
 
-synchronized (platform.getReservations()) {
+String userName = scanner.nextLine();
 
-platform.getReservations().add(new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule));
+User user = findUserById(userId);
 
-}
+if (user == null) {
 
-}
+user = new User(userName, userId);
 
-// Add the schedule to the list
+users.add(user);
 
-synchronized (trainSchedules) {
-
-trainSchedules.add(schedule);
+System.out.println("New user created.");
 
 }
 
-return true;
+if (user.getBorrowedBicycles().size() >= 2) {
+
+System.out.println("You have already borrowed the maximum of 2 bicycles.");
+
+return;
 
 }
 
-But in this approach, the checking and reserving are done in two separate loops, which could lead to a race condition. Because after checking all platforms, another thread could add a reservation in between the check and the reservation. So this is a classic problem of non-atomic check-then-act.
+// Display available bicycles
 
-To prevent this, the entire process of checking and reserving must be atomic for all platforms involved. Which is difficult because each platform's reservations are separate. So how to lock all platforms in the schedule's entries to prevent concurrent modifications during the check and reserve phase.
+List<String> availableBikes = new ArrayList<>();
 
-This is tricky. One approach is to lock all the platforms in a fixed order to prevent deadlocks. For example, sort the platforms by station name and platform number, then lock them in that order during both the check and reserve phases.
+for (String[] bike : bicycles) {
 
-But how to handle that. Let's see.
+if ("Available".equals(bike[3])) {
 
-When adding a schedule, we need to:
-
-1. Lock all platforms in the schedule's entries in a fixed order.
-
-2. Check each platform's availability.
-
-3. If all are available, reserve them.
-
-4. Unlock all platforms.
-
-This way, during the check and reserve phase, no other thread can modify these platforms' reservations, ensuring atomicity.
-
-But implementing this requires that for each schedule, we collect all platforms involved, sort them in a fixed order (to prevent deadlocks), then lock them all before proceeding.
-
-This is more complex, but necessary to avoid race conditions.
-
-So the code would look something like:
-
-public boolean addTrainSchedule(TrainSchedule schedule) {
-
-List<Platform> platformsToReserve = new ArrayList<>();
-
-for (ScheduleEntry entry : schedule.getEntries()) {
-
-Platform platform = entry.getStation().getPlatform(entry.getPlatform());
-
-platformsToReserve.add(platform);
+availableBikes.add(bike[0]);
 
 }
 
-// Sort platforms to lock in a fixed order
+}
 
-platformsToReserve.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+if (availableBikes.isEmpty()) {
 
-try {
+System.out.println("No bicycles available to borrow.");
 
-// Acquire locks in sorted order
-
-for (Platform p : platformsToReserve) {
-
-p.lock();
+return;
 
 }
 
-// Check availability for all platforms
+System.out.println("Available bicycles: " + String.join(", ", availableBikes));
 
-boolean allAvailable = true;
+System.out.println("Enter the name of the bicycle you want to borrow:");
 
-for (int i = 0; i < schedule.getEntries().size(); i++) {
+String bikeName = scanner.nextLine();
 
-ScheduleEntry entry = schedule.getEntries().get(i);
+// Find the bicycle
 
-Platform platform = platformsToReserve.get(i);
+boolean found = false;
 
-if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
+for (String[] bike : bicycles) {
 
-allAvailable = false;
+if (bike[0].equals(bikeName) && "Available".equals(bike[3])) {
+
+bike[3] = "Unavailable";
+
+user.getBorrowedBicycles().add(bikeName);
+
+System.out.println("Bicycle borrowed successfully.");
+
+found = true;
 
 break;
 
@@ -385,323 +457,125 @@ break;
 
 }
 
-if (!allAvailable) {
+if (!found) {
 
-return false;
-
-}
-
-// Reserve all platforms
-
-for (int i = 0; i < schedule.getEntries().size(); i++) {
-
-ScheduleEntry entry = schedule.getEntries().get(i);
-
-Platform platform = platformsToReserve.get(i);
-
-TimeInterval interval = new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule);
-
-platform.getReservations().add(interval);
-
-}
-
-// Add the schedule to the list
-
-synchronized (trainSchedules) {
-
-trainSchedules.add(schedule);
-
-}
-
-return true;
-
-} finally {
-
-// Unlock all platforms in reverse order
-
-for (int i = platformsToReserve.size() - 1; i >= 0; i--) {
-
-platformsToReserve.get(i).unlock();
+System.out.println("Bicycle not found or not available.");
 
 }
 
 }
 
-}
+But in this code, modifying the bicycle's availability directly in the array. Since the array is a String array, each element is a reference, so modifying bike[3] should update the array.
 
-But in Java, there's no explicit lock() method for objects unless we use the Lock class. So perhaps each Platform has a ReentrantLock instance.
+Similarly, for returning:
 
-So, modifying the Platform class:
+public static void returnBicycle(Scanner scanner) {
 
-class Platform {
+System.out.println("Enter your user ID:");
 
-int number;
+String userId = scanner.nextLine();
 
-List<TimeInterval> reservations = new ArrayList<>();
+User user = findUserById(userId);
 
-ReentrantLock lock = new ReentrantLock();
+if (user == null) {
 
-// ...
+System.out.println("User not found.");
 
-}
-
-Then, in the addTrainSchedule method, for each platform in the sorted list, we acquire the lock.
-
-This approach ensures that during the check and reserve phase, all required platforms are locked, preventing other threads from modifying their reservations.
-
-But this adds complexity. However, it's necessary to prevent race conditions where two trains are scheduled on overlapping platforms.
-
-Once the platforms are locked, the check and reserve are done atomically.
-
-This seems like the correct approach for handling concurrent additions.
-
-Similarly, canceling a schedule would need to remove the reservations from the platforms. Again, this requires locking all the platforms involved in the schedule's entries, removing the reservations, and then unlocking.
-
-Now, for the real-time simulation using multithreading.
-
-Each Train thread is created when the schedule is added. The thread is responsible for simulating the train's journey according to the schedule.
-
-The Train's run method would process each ScheduleEntry in order. For each entry, it would:
-
-1. Calculate the delay until the arrival time.
-
-2. Sleep until that time.
-
-3. Simulate arrival: log the arrival.
-
-4. Sleep until departure time.
-
-5. Simulate departure: log the departure.
-
-But how to calculate the delay based on the current time.
-
-Assuming the simulation starts at a base time (e.g., when the system starts), and the schedule's times are in the future relative to that.
-
-So, the Train thread would:
-
-- For each ScheduleEntry:
-
-a. Compute the time difference between the arrivalTime and the base time.
-
-b. Wait (sleep) for that duration.
-
-c. Arrive at the station (log, etc.)
-
-d. Compute the duration between departureTime and arrivalTime, wait for that.
-
-e. Depart.
-
-But how to handle the base time. Perhaps the TrainScheduler has a getSimulationStartTime() method that returns the time when the simulation was started.
-
-Alternatively, the simulation uses the system's current time as the reference. For example, if the train's schedule is to arrive at 10:00:00, and the current system time is 09:50:00, the thread would sleep for 10 minutes.
-
-But using real system time for scheduling requires that the system is running in real time, which may not be practical for testing. However, for the purposes of this problem, perhaps it's acceptable.
-
-Alternatively, the simulation can use a virtual clock, which starts when the simulation begins and can be scaled. But that's more complex.
-
-Assuming we use real system time:
-
-The Train thread's run method:
-
-public void run() {
-
-try {
-
-for (ScheduleEntry entry : trainSchedule.getEntries()) {
-
-long arrivalDelay = entry.getArrivalTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
-
-if (arrivalDelay > 0) {
-
-Thread.sleep(arrivalDelay);
+return;
 
 }
 
-// Simulate arrival
+List<String> borrowed = user.getBorrowedBicycles();
 
-System.out.println("Train " + trainId + " arrived at " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + entry.getArrivalTime());
+if (borrowed.isEmpty()) {
 
-long departureDelay = entry.getDepartureTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
+System.out.println("You have no bicycles to return.");
 
-if (departureDelay > 0) {
-
-Thread.sleep(departureDelay);
+return;
 
 }
 
-// Simulate departure
+System.out.println("Your borrowed bicycles: " + String.join(", ", borrowed));
 
-System.out.println("Train " + trainId + " departed from " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + entry.getDepartureTime());
+System.out.println("Enter the name of the bicycle to return:");
+
+String bikeName = scanner.nextLine();
+
+if (!borrowed.contains(bikeName)) {
+
+System.out.println("Bicycle not found in your borrowed list.");
+
+return;
 
 }
 
-} catch (InterruptedException e) {
+// Find the bicycle and mark as available
 
-// Handle cancellation
+boolean found = false;
 
-System.out.println("Train " + trainId + " was canceled.");
+for (String[] bike : bicycles) {
+
+if (bike[0].equals(bikeName) && "Unavailable".equals(bike[3])) {
+
+bike[3] = "Available";
+
+found = true;
+
+break;
 
 }
 
 }
 
-But this approach assumes that the arrival and departure times are in the future relative to the current system time. If a schedule is added with times in the past, the thread would proceed immediately.
+if (found) {
 
-But in practice, schedules should be added with future times.
+borrowed.remove(bikeName);
 
-However, when the simulation is started, the user might add schedules with various times. The threads would handle them as per their schedule.
+System.out.println("Bicycle returned successfully.");
 
-But if the system allows adding schedules with past times, the threads would process them immediately, which might not be desired. So the addTrainSchedule method should probably check that all schedule entries are in the future.
+} else {
 
-But according to the problem statement, the system should allow dynamic updates, including adding new schedules. So it's possible to add a schedule that starts immediately.
-
-Now, for the cancelTrainSchedule functionality:
-
-When a train schedule is canceled, the system needs to remove its reservations from all platforms and interrupt the Train thread if it's running.
-
-So the TrainScheduler's cancel method would:
-
-1. Find the TrainSchedule in the list.
-
-2. Remove it from the list.
-
-3. For each ScheduleEntry in the TrainSchedule, remove the corresponding TimeInterval from the platform's reservations.
-
-4. Interrupt the Train thread associated with this schedule to stop its execution.
-
-But again, this requires locking the platforms during the removal to prevent race conditions.
-
-The cancel method would need to:
-
-- Lock all platforms in the schedule's entries (similar to the add method, in sorted order).
-
-- Remove the TimeIntervals associated with the schedule.
-
-- Unlock the platforms.
-
-Also, find the corresponding Train thread and interrupt it.
-
-So the TrainScheduler would need to keep track of the Train threads associated with each schedule.
-
-Perhaps the TrainScheduler has a Map<TrainSchedule, Train> activeTrains.
-
-When a schedule is added, a Train object is created and added to the map. When canceled, the Train is retrieved from the map and interrupted.
-
-Putting it all together:
-
-The TrainScheduler has:
-
-- List<Station> stations.
-
-- List<TrainSchedule> trainSchedules.
-
-- Map<TrainSchedule, Train> activeTrains.
-
-When a schedule is added:
-
-- After successfully reserving platforms, a Train object is created, added to activeTrains, and its thread is started.
-
-When a schedule is canceled:
-
-- The Train is retrieved from activeTrains, interrupted, and removed from the map.
-
-- The schedule's TimeIntervals are removed from the platforms.
-
-Now, the TimeInterval objects need to reference the TrainSchedule they belong to, so when canceling, we can find and remove them.
-
-In code:
-
-class TimeInterval {
-
-LocalDateTime start;
-
-LocalDateTime end;
-
-TrainSchedule schedule;
-
-// constructor, getters
+System.out.println("Bicycle not found or already available.");
 
 }
 
-So, when canceling a TrainSchedule, iterate over each platform's reservations and remove any TimeInterval where schedule equals the canceled schedule.
+}
 
-But this is O(n) for each platform's reservations. For efficiency, maybe use a Map<TrainSchedule, List<TimeInterval>> in each Platform, but the problem requires using ArrayList.
+For searching:
 
-So, even with ArrayLists, it's manageable.
+public static void searchBicycle(Scanner scanner) {
 
-In the cancel method:
+System.out.println("Enter search term:");
 
-public boolean cancelTrainSchedule(TrainSchedule schedule) {
+String term = scanner.nextLine().toLowerCase();
 
-// Find the schedule in the list
+List<String[]> results = new ArrayList<>();
 
-synchronized (trainSchedules) {
+for (String[] bike : bicycles) {
 
-if (!trainSchedules.contains(schedule)) {
+if (bike[0].toLowerCase().contains(term) ||
 
-return false;
+bike[1].toLowerCase().contains(term) ||
+
+bike[2].toLowerCase().contains(term)) {
+
+results.add(bike);
 
 }
 
-trainSchedules.remove(schedule);
-
 }
 
-// Get the associated Train thread and interrupt it
+if (results.isEmpty()) {
 
-Train train = activeTrains.get(schedule);
+System.out.println("No bicycles found.");
 
-if (train != null) {
+} else {
 
-train.interrupt();
+System.out.println("Search results:");
 
-activeTrains.remove(schedule);
+for (String[] bike : results) {
 
-}
-
-// Remove reservations from platforms
-
-List<Platform> platformsToUpdate = new ArrayList<>();
-
-for (ScheduleEntry entry : schedule.getEntries()) {
-
-Platform platform = entry.getStation().getPlatform(entry.getPlatform());
-
-platformsToUpdate.add(platform);
-
-}
-
-// Sort platforms to lock in fixed order
-
-platformsToUpdate.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
-
-try {
-
-// Acquire locks
-
-for (Platform p : platformsToUpdate) {
-
-p.lock();
-
-}
-
-// Remove all TimeIntervals associated with this schedule
-
-for (ScheduleEntry entry : schedule.getEntries()) {
-
-Platform platform = entry.getStation().getPlatform(entry.getPlatform());
-
-List<TimeInterval> reservations = platform.getReservations();
-
-Iterator<TimeInterval> it = reservations.iterator();
-
-while (it.hasNext()) {
-
-TimeInterval interval = it.next();
-
-if (interval.getSchedule() == schedule) {
-
-it.remove();
+System.out.println("Name: " + bike[0] + ", Make: " + bike[1] + ", Type: " + bike[2] + ", Availability: " + bike[3]);
 
 }
 
@@ -709,149 +583,55 @@ it.remove();
 
 }
 
-} finally {
+Now, the User class:
 
-// Unlock platforms
-
-for (int i = platformsToUpdate.size() - 1; i >= 0; i--) {
-
-platformsToUpdate.get(i).unlock();
-
-}
-
-}
-
-return true;
-
-}
-
-Now, the viewTrainSchedules method would simply return the list of schedules.
-
-For platform management, perhaps the system allows viewing platform availability, which involves checking each platform's reservations.
-
-Now, handling the simulation:
-
-Each Train thread is started when the schedule is added. The thread runs and processes each ScheduleEntry, waiting until the appropriate times to log arrivals and departures.
-
-But using Thread.sleep() with real-time delays. For example, if a train is scheduled to depart in an hour, the thread sleeps for an hour. But this is not practical for a simulation. So perhaps the time is scaled down. For example, each real-world second represents a minute or an hour in the simulation.
-
-But how to implement that. One approach is to have a time scaling factor. For example, 60 seconds real time equals 1 hour simulation time. So, when calculating the delay, multiply the simulation time difference by the scaling factor.
-
-But this requires that the Train threads know the scaling factor. So, the simulation could have a configurable scaling factor, say 1:60 (1 real second = 60 simulation seconds).
-
-In code:
-
-long simulationDelay = (entry.getArrivalTime().toEpochSecond() - simulationStartTime.toEpochSecond()) * scalingFactor;
-
-But this requires tracking the simulation start time and scaling factor.
-
-Alternatively, the system can use a virtual clock that is updated by a separate thread, and all Train threads refer to this clock. But this adds complexity.
-
-For simplicity, perhaps the problem allows using real time without scaling, and the code uses Thread.sleep() with the actual delay. But for testing, this is impractical, so perhaps the code uses a scaling factor of 1000, where 1 second real time equals 1000 seconds simulation time.
-
-But how to implement this:
-
-When the simulation starts, the current time is recorded as the simulation start time. Each schedule entry's time is converted to a delay relative to the simulation start time, multiplied by the scaling factor.
-
-For example, if the simulation start time is 0 (epoch), and a schedule entry is at time 3600 (1 hour), and the scaling factor is 1000, then the real delay is 3600 / 1000 = 3.6 seconds.
-
-But this requires converting all schedule times to a common epoch, which could be the simulation start time.
-
-But this requires that the schedule times are provided as offsets from the simulation start time, which may not be the case. The problem statement doesn't specify, but real train schedules use absolute times.
-
-This is getting complicated. Perhaps the simplest way is to ignore time scaling and use real-time delays, but mention in the code comments that this is a placeholder and could be modified for a scaled simulation.
-
-Alternatively, the code uses a SimulationClock class that can be paused, scaled, etc., but that's beyond the scope here.
-
-Given the time constraints, perhaps the code uses real system time, and the schedules are added with future times. The threads will sleep until those times.
-
-Now, putting all this together, the code structure would look like:
-
-Main classes:
-
-- TrainScheduler: Manages stations, platforms, schedules, and active trains. Implements add, cancel, view methods.
-
-- Station: Has a name and list of platforms.
-
-- Platform: Has a number, list of TimeInterval reservations, and a ReentrantLock.
-
-- TimeInterval: Has start and end times, and a reference to the TrainSchedule.
-
-- TrainSchedule: Has a list of ScheduleEntry objects and a unique ID.
-
-- ScheduleEntry: Has a station, platform, arrival and departure times.
-
-- Train: Extends Thread. Simulates the train's journey by sleeping until arrival/departure times.
-
-Now, implementing this in Java.
-
-First, the TimeInterval class:
-
-public class TimeInterval {
-
-private LocalDateTime start;
-
-private LocalDateTime end;
-
-private TrainSchedule schedule;
-
-public TimeInterval(LocalDateTime start, LocalDateTime end, TrainSchedule schedule) {
-
-this.start = start;
-
-this.end = end;
-
-this.schedule = schedule;
-
-}
-
-// Getters and setters...
-
-}
-
-The ScheduleEntry class:
-
-public class ScheduleEntry {
-
-private Station station;
-
-private int platform;
-
-private LocalDateTime arrivalTime;
-
-private LocalDateTime departureTime;
-
-// Constructor, getters...
-
-}
-
-The TrainSchedule class:
-
-public class TrainSchedule {
-
-private String trainId;
-
-private List<ScheduleEntry> entries;
-
-// Constructor, getters...
-
-}
-
-The Station class:
-
-public class Station {
+class User {
 
 private String name;
 
-private List<Platform> platforms;
+private String id;
 
-public Platform getPlatform(int number) {
+private List<String> borrowedBicycles;
 
-for (Platform p : platforms) {
+public User(String name, String id) {
 
-if (p.getNumber() == number) {
+this.name = name;
 
-return p;
+this.id = id;
+
+this.borrowedBicycles = new ArrayList<>();
+
+}
+
+public String getName() {
+
+return name;
+
+}
+
+public String getId() {
+
+return id;
+
+}
+
+public List<String> getBorrowedBicycles() {
+
+return borrowedBicycles;
+
+}
+
+}
+
+Helper method to find a user by ID:
+
+private static User findUserById(String userId) {
+
+for (User user : users) {
+
+if (user.getId().equals(userId)) {
+
+return user;
 
 }
 
@@ -861,209 +641,101 @@ return null;
 
 }
 
-// Constructor, getters...
+Putting it all together in the main class with a menu:
 
-}
+public class BicycleManagementSystem {
 
-The Platform class:
+private static String[][] bicycles = new String[0][4];
 
-public class Platform {
+private static List<User> users = new ArrayList<>();
 
-private int number;
+public static void main(String[] args) {
 
-private List<TimeInterval> reservations = new ArrayList<>();
+Scanner scanner = new Scanner(System.in);
 
-private ReentrantLock lock = new ReentrantLock();
+while (true) {
 
-public void lock() {
+System.out.println("\nMenu:");
 
-lock.lock();
+System.out.println("1. Add Bicycle");
 
-}
+System.out.println("2. View All Bicycles");
 
-public void unlock() {
+System.out.println("3. Borrow Bicycle");
 
-lock.unlock();
+System.out.println("4. Return Bicycle");
 
-}
+System.out.println("5. Display Borrowed Bicycles");
 
-// Getters...
+System.out.println("6. Search Bicycle");
 
-}
+System.out.println("7. Exit");
 
-The Train class:
+System.out.print("Enter your choice: ");
 
-public class Train extends Thread {
-
-private TrainSchedule schedule;
-
-private String trainId;
-
-public Train(TrainSchedule schedule) {
-
-this.schedule = schedule;
-
-this.trainId = schedule.getTrainId();
-
-}
-
-@Override
-
-public void run() {
+int choice;
 
 try {
 
-for (ScheduleEntry entry : schedule.getEntries()) {
+choice = Integer.parseInt(scanner.nextLine());
 
-LocalDateTime arrivalTime = entry.getArrivalTime();
+} catch (NumberFormatException e) {
 
-LocalDateTime departureTime = entry.getDepartureTime();
+System.out.println("Invalid choice. Please enter a number.");
 
-// Wait until arrival time
-
-long delay = calculateDelay(arrivalTime);
-
-if (delay > 0) {
-
-Thread.sleep(delay);
+continue;
 
 }
 
-System.out.println("Train " + trainId + " arrived at " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + arrivalTime);
+switch (choice) {
 
-// Wait until departure time
+case 1:
 
-delay = calculateDelay(departureTime);
+addBicycle(scanner);
 
-if (delay > 0) {
+break;
 
-Thread.sleep(delay);
+case 2:
 
-}
+viewBicycles();
 
-System.out.println("Train " + trainId + " departed from " + entry.getStation().getName() + " Platform " + entry.getPlatform() + " at " + departureTime);
+break;
 
-}
+case 3:
 
-} catch (InterruptedException e) {
+borrowBicycle(scanner);
 
-System.out.println("Train " + trainId + " was canceled.");
+break;
 
-}
+case 4:
 
-}
+returnBicycle(scanner);
 
-private long calculateDelay(LocalDateTime targetTime) {
+break;
 
-LocalDateTime now = LocalDateTime.now();
+case 5:
 
-Duration duration = Duration.between(now, targetTime);
+displayBorrowed(scanner);
 
-return duration.toMillis();
+break;
 
-}
+case 6:
 
-}
+searchBicycle(scanner);
 
-But the calculateDelay method will return a negative value if targetTime is in the past. So the code should handle that by proceeding immediately.
+break;
 
-However, using LocalDateTime.now() assumes that the system's clock is correct and that the schedule times are set accordingly. This may not be ideal for a simulation, but for the purposes of this problem, it's acceptable.
+case 7:
 
-The TrainScheduler class:
+System.out.println("Exiting...");
 
-public class TrainScheduler {
+scanner.close();
 
-private List<Station> stations = new ArrayList<>();
+return;
 
-private List<TrainSchedule> trainSchedules = new ArrayList<>();
+default:
 
-private Map<TrainSchedule, Train> activeTrains = new HashMap<>();
-
-public boolean addTrainSchedule(TrainSchedule schedule) {
-
-List<Platform> platformsToReserve = new ArrayList<>();
-
-for (ScheduleEntry entry : schedule.getEntries()) {
-
-Station station = entry.getStation();
-
-Platform platform = station.getPlatform(entry.getPlatform());
-
-if (platform == null) {
-
-return false; // Platform doesn't exist
-
-}
-
-platformsToReserve.add(platform);
-
-}
-
-// Sort platforms to lock in a fixed order
-
-platformsToReserve.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
-
-try {
-
-// Acquire locks
-
-for (Platform p : platformsToReserve) {
-
-p.lock();
-
-}
-
-// Check availability
-
-for (int i = 0; i < schedule.getEntries().size(); i++) {
-
-ScheduleEntry entry = schedule.getEntries().get(i);
-
-Platform platform = platformsToReserve.get(i);
-
-if (!isPlatformAvailable(platform, entry.getArrivalTime(), entry.getDepartureTime())) {
-
-return false;
-
-}
-
-}
-
-// Reserve platforms
-
-for (int i = 0; i < schedule.getEntries().size(); i++) {
-
-ScheduleEntry entry = schedule.getEntries().get(i);
-
-Platform platform = platformsToReserve.get(i);
-
-TimeInterval interval = new TimeInterval(entry.getArrivalTime(), entry.getDepartureTime(), schedule);
-
-platform.getReservations().add(interval);
-
-}
-
-// Add to schedules and start train thread
-
-synchronized (trainSchedules) {
-
-trainSchedules.add(schedule);
-
-}
-
-Train train = new Train(schedule);
-
-activeTrains.put(schedule, train);
-
-train.start();
-
-return true;
-
-} finally {
-
-for (int i = platformsToReserve.size() - 1; i >= 0; i--) {
-
-platformsToReserve.get(i).unlock();
+System.out.println("Invalid choice. Please try again.");
 
 }
 
@@ -1071,77 +743,41 @@ platformsToReserve.get(i).unlock();
 
 }
 
-private boolean isPlatformAvailable(Platform platform, LocalDateTime start, LocalDateTime end) {
-
-for (TimeInterval interval : platform.getReservations()) {
-
-if (interval.getStart().isBefore(end) && interval.getEnd().isAfter(start)) {
-
-return false;
+// All the static methods (addBicycle, viewBicycles, etc.) go here
 
 }
 
-}
+Now, handling the display borrowed bicycles:
 
-return true;
+public static void displayBorrowed(Scanner scanner) {
 
-}
+System.out.println("Enter your user ID:");
 
-public boolean cancelTrainSchedule(TrainSchedule schedule) {
+String userId = scanner.nextLine();
 
-synchronized (trainSchedules) {
+User user = findUserById(userId);
 
-if (!trainSchedules.remove(schedule)) {
+if (user == null) {
 
-return false;
+System.out.println("User not found.");
 
-}
-
-}
-
-Train train = activeTrains.get(schedule);
-
-if (train != null) {
-
-train.interrupt();
-
-activeTrains.remove(schedule);
+return;
 
 }
 
-List<Platform> platformsToUpdate = new ArrayList<>();
+List<String> borrowed = user.getBorrowedBicycles();
 
-for (ScheduleEntry entry : schedule.getEntries()) {
+if (borrowed.isEmpty()) {
 
-Platform platform = entry.getStation().getPlatform(entry.getPlatform());
+System.out.println("You have no borrowed bicycles.");
 
-platformsToUpdate.add(platform);
+} else {
 
-}
+System.out.println("Borrowed bicycles:");
 
-platformsToUpdate.sort(Comparator.comparing(p -> p.getStation().getName() + p.getNumber()));
+for (String bikeName : borrowed) {
 
-try {
-
-for (Platform p : platformsToUpdate) {
-
-p.lock();
-
-}
-
-for (ScheduleEntry entry : schedule.getEntries()) {
-
-Platform platform = entry.getStation().getPlatform(entry.getPlatform());
-
-Iterator<TimeInterval> it = platform.getReservations().iterator();
-
-while (it.hasNext()) {
-
-TimeInterval interval = it.next();
-
-if (interval.getSchedule() == schedule) {
-
-it.remove();
+System.out.println(bikeName);
 
 }
 
@@ -1149,67 +785,87 @@ it.remove();
 
 }
 
-} finally {
+Now, possible issues:
 
-for (int i = platformsToUpdate.size() - 1; i >= 0; i--) {
+- The bicycles array is static, which is okay for a simple program.
 
-platformsToUpdate.get(i).unlock();
+- No input validation beyond catching number format exceptions.
+
+- The user ID is used to find users, so IDs must be unique. The code currently allows duplicate IDs if a user is created with the same ID. Need to check for existing IDs before creating a new user during borrowing. Wait, in the borrowBicycle method, when the user enters their ID and name, the code checks if the user exists by ID. If not, creates a new user. So if a user enters an existing ID but different name, it will find the existing user and proceed. So the ID is considered unique. So perhaps during user creation, we should check if the ID already exists and prevent duplicates. However, the current code in borrowBicycle does:
+
+User user = findUserById(userId);
+
+if (user == null) {
+
+user = new User(userName, userId);
+
+users.add(user);
 
 }
 
+But this allows a new user to be created with the same ID if they enter a different name. Which is a problem. So the code needs to enforce unique user IDs.
+
+So during borrowing, if a user enters an existing ID but different name, the code would find the existing user and proceed, ignoring the entered name. This could be a security issue. To fix this, when a user provides an ID, check if it exists. If it does, verify the name matches. If not, display an error.
+
+Modify the borrowBicycle method:
+
+System.out.println("Enter your user ID:");
+
+String userId = scanner.nextLine();
+
+System.out.println("Enter your name:");
+
+String userName = scanner.nextLine();
+
+User user = findUserById(userId);
+
+if (user != null) {
+
+if (!user.getName().equals(userName)) {
+
+System.out.println("User ID already exists with a different name. Cannot proceed.");
+
+return;
+
 }
 
-return true;
+} else {
+
+user = new User(userName, userId);
+
+users.add(user);
+
+System.out.println("New user created.");
 
 }
 
-// Other methods like viewSchedules, etc.
+This way, existing users must provide the correct name.
 
-}
+Similarly, during returning, the user ID is checked, and the user must exist.
 
-But this is a simplified version. Some notes:
+Another issue: when displaying borrowed bicycles, if the user has borrowed a bicycle that was then removed from the system (though the problem doesn't mention deleting bicycles), the code may reference a non-existent bicycle. But the requirements don't mention removing bicycles, so assuming that once added, bicycles are not removed.
 
-- The addTrainSchedule method collects all platforms from the schedule's entries, sorts them, locks them, checks availability, reserves them, adds the schedule to the list, and starts the Train thread.
+Now, testing the code:
 
-- The isPlatformAvailable method checks if the new time interval overlaps with any existing ones. Overlap occurs if the new start is before an existing end and the new end is after an existing start.
+When adding a bicycle, the system resizes the array.
 
-- The cancel method removes the schedule from the list, interrupts the train thread, and removes the time intervals from the platforms.
+When borrowing, the user is created if not present.
 
-Potential issues:
+The code uses a 2D array for bicycles as required.
 
-- The use of == to compare schedules in the cancel method. Should use .equals() instead, but assumes that TrainSchedule objects are unique and compared by reference. Alternatively, use a unique identifier.
+The search function checks all attributes.
 
-- Error handling: What if a station or platform doesn't exist? The code currently returns false if a platform is not found.
+The menu is handled with a loop.
 
-- The calculateDelay method in the Train class uses LocalDateTime.now(), which relies on the system's clock. This may not be suitable for a simulation that starts at a different time.
+Now, possible improvements:
 
-- The Train thread uses Thread.sleep() with the calculated delay, which may be negative if the scheduled time is in the past, leading to immediate processing.
+- Input validation for all inputs (e.g., non-empty strings).
 
-- The simulation uses real time, so testing with schedules that have times in the future is necessary.
+- Case-insensitive search.
 
-But overall, this design covers the requirements:
+- Prevent adding bicycles with duplicate names.
 
-- Scheduling trains with platform availability checks.
-
-- Dynamic updates (add/cancel).
-
-- Real-time simulation using multithreading.
-
-- Data management with ArrayLists and proper synchronization.
-
-Possible improvements:
-
-- Use a unique identifier for TrainSchedules to avoid reference comparison.
-
-- Handle time zones properly in schedule times.
-
-- Use a virtual clock for simulation time, allowing scaling.
-
-- Implement a proper logging system instead of System.out.println.
-
-- Add methods to view schedules and platform availability.
-
-But given the problem constraints and time, this should suffice.
+But given the problem constraints and time, the code meets the requirements.
 
 --------------------------------------------------------------------------------------------------------------------------
 QUESTION 3
